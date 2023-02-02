@@ -3,6 +3,7 @@
     "version": "1.0.0",
     "type": "agreement",
     "context": {
+        "infrastructure": {},
         "validity": {
             "initial": "2017-10-15",
             "timeZone": "America/Los_Angeles"
