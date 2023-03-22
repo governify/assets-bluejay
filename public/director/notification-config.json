@@ -1,0 +1,22 @@
+{
+  "Nok": 5,
+  "Nnok": 5,
+  "messages": [
+                {"state": "ok","condition": "onEnter","message": "Congratulations, you're on the right track.","emoji": "✔️"},
+                {"state": "ok","condition": "onStay","evolution": "increasing","threshold": 0.1,"history": 3,"message": "Excellent, improving every day!","emoji": "📈"},
+                {"state": "ok","condition": "onStay","evolution": "decreasing","threshold": 0.1,"history": 3,"message": "Oops...you've been doing well, careful you don't slip!","emoji": "⚠️"},
+                {"state": "ok","condition": "onStay","evolution": "stalled","message": "Keep up the good work!","emoji": "✔️"},
+                {"state": "nok","condition": "onEnter","evolution": "stalled","message": "Yikes...looks like things have slipped!","emoji": "❌"},
+                {"state": "nok","condition": "onStay","evolution": "increasing","threshold": 0.1,"history": 3,"message": "Getting better, but still needs improvement...stay with it!","emoji": "❌"},
+                {"state": "nok","condition": "onStay","evolution": "decreasing","threshold": 0.1,"history": 3,"message": "Be careful...things are getting worse...consider contacting your coach for tips on how to turn it around.","emoji": "🛑"},
+                {"state": "nok","condition": "onStay","evolution": "stalled","message": "Still need to get back in the saddle.  Maybe your coach can help?","emoji": "❌"},
+                {"state": "mok","condition": "onEnter","message": "Consistently great work! Congratulations!","emoji": "✔️✔️"},
+                {"state": "mok","condition": "onStay","evolution": "increasing","threshold": 0.2,"history": 8,"message": "Great work, better every day!","emoji": "🤩📈"},
+                {"state": "mok","condition": "onStay","evolution": "decreasing","threshold": 0.2,"history": 8,"message": "Great work...keep up the energy, don't stop now!","emoji": "⚠️"},
+                {"state": "mok","condition": "onStay","evolution": "stalled","message": "You've been doing great for quite a while! Excellent work!","emoji": "✔️✔️"},
+                {"state": "mnok","condition": "onEnter","message": "You've been having trouble for a while now...can your coach help?","emoji": "❌❌"},
+                {"state": "mnok","condition": "onStay","evolution": "increasing","threshold": 0.2,"history": 8,"message": "Still needs work, but definitely getting better! Keep it up!","emoji": "❌"},
+                {"state": "mnok","condition": "onStay","evolution": "decreasing","threshold": 0.2,"history": 8,"message": "Looks like things have really slowed down...can your coach help?","emoji": "🛑"},
+                {"state": "mnok","condition": "onStay","evolution": "stalled","message": "Looks like you've been stuck for a while. Reach out to your coach for help, that's what we're here for!","emoji": "❌❌"}
+            ]
+}
