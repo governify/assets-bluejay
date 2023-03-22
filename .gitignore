@@ -8,4 +8,5 @@ public/director/*
 !public/director/template.json
 !public/director/template.js
 !public/director/check-status.js
+!public/director/modify_agreement.js
 public/logs
