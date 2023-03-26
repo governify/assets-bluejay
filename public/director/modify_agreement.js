@@ -6,7 +6,7 @@ const _ = require('lodash');
 /** Config Schema:
  *  {
  *    agreementId: "agreementRegex",
- *    modify: {
+ *    modify|merge: {
  *        "lodash-like-expression": "newValue",
  *    }
  *  }
@@ -22,8 +22,9 @@ module.exports.main = async (config) => {
     let tpas = await axios.get(`${registryUrl}`).then(res => res.data?.filter(t => new RegExp(config.agreementId).test(t.id)) ?? []).catch(() => []);
     let tpasIds = tpas.map(t => t.id);
 
-    Object.entries(config.modify ?? {}).forEach(([key, value]) => {
-        tpas = tpas.map(t => _.set(t, key, value));
+    Object.entries(config.modify ?? config.merge ?? {}).forEach(([key, value]) => {
+        if (config.merge) tpas = tpas.map(t => _.merge(t, _.set({}, key, value)));
+        else tpas = tpas.map(t => _.set(t, key, value));
     });
 
     let err = [];
