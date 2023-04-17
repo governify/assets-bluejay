@@ -25,53 +25,6 @@
                     "members": []
                 }
             ]
-        },
-        {
-            "classId": "PSG2-2023",
-            "hidden": false,
-            "identities": [],
-            "credentials": [],
-            "projects": [
-                {
-                    "projectId": "psg2-test",
-                    "owner": "bluejay",
-                    "identities": [
-                        {
-                            "source": "github",
-                            "repository": "bluejay-redmine-test",
-                            "repoOwner": "MaToSan24"
-                        }
-                    ],
-                    "credentials": [
-                        {
-                            "source": "github",
-                            "apiKey": "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"
-                        }
-                    ],
-                    "members": [
-                        {
-                            "memberId": "MaToSan24",
-                            "identities": [
-                                {
-                                    "source": "github",
-                                    "username": "MaToSan24"
-                                }
-                            ],
-                            "credentials": []
-                        },
-                        {
-                            "memberId": "MarTorSan13",
-                            "identities": [
-                                {
-                                    "source": "github",
-                                    "username": "MarTorSan13"
-                                }
-                            ],
-                            "credentials": []
-                        }
-                    ]
-                }
-            ]
         }
     ]
 }
