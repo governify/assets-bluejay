@@ -68,23 +68,33 @@ function loadProjects() {
                 $http({
                     method: 'GET',
                     url: '$_[infrastructure.external.registry.default]/api/v6/agreements'
-                }).then((regresponse) => {
-                    try {
-                        var projects = projectresponse.data.scope.projects;
-                        var agreements = regresponse.data;
-                        projects.forEach(project => {
-                            const projectAgreementId = project.agreementId ? project.agreementId : 'tpa-' + project.projectId;
-                            var found = agreements.find(agreement => agreement.id === projectAgreementId);
-                            if (found) {
-                                project.registryagreement = found;
-                                //project.urlReporterHttps = found.context.infrastructure.external.reporter;
-                                //project.urlRegistryHttps = found.context.infrastructure.external.registry;
-                                // Clasify by owner
-                                scopeTpaprojects = clasifyProject(project, scopeTpaprojects);
-                            } else {
-                                scopeNotpaprojects = clasifyProject(project, scopeNotpaprojects);
-                            }
+                }).then(async (regresponse) => {
+                    var projects = projectresponse.data.scope.projects;
+                    var agreements = regresponse.data;
+                    
+                    await Promise.allSettled(projects.map(async project => {
+                        const projectAgreementId = project.agreementId ? project.agreementId : 'tpa-' + project.projectId;
+                        var found = agreements.find(agreement => agreement.id === projectAgreementId);
+                        if (found) {
+                            project.registryagreement = found;
+                            scopeTpaprojects = clasifyProject(project, scopeTpaprojects);
+                        } else {
+                            scopeNotpaprojects = clasifyProject(project, scopeNotpaprojects);
+                        }
+
+                        if (project.notifications?.slack)
+                        await $http({
+                            method: 'GET',
+                            url: `$_[infrastructure.external.director.default]/api/v1/tasks/slack-${project.projectId}`,
+                        }).then( directorResponse => {
+                            console.info("Loaded execution from director.");
+                            project.toggleSlack = true;
+                            project.slackTaskInfo = directorResponse.data;
+                        }).catch( directorErr => {
+                            if (directorErr.status !== 404) console.log(directorErr);                
                         });
+                    })).then(() => {
+                        console.log({...scopeTpaprojects})
 
                         // This assign is for interval projects updating
                         $scope.tpaprojects = {...scopeTpaprojects};
@@ -96,12 +106,12 @@ function loadProjects() {
                         $scope.notpaprojectskeys = $scope.notpaprojectskeys.filter(item => item !== "Projects w/o owner");
                         $scope.notpaprojectskeys.push(Object.keys(scopeNotpaprojects).filter(item => item === "Projects w/o owner")[0]);
                         $scope.finishloading = true;
-                    } catch (err) {
+                    }).catch(err => {;
                         setPageAlert("Comparing registry projects failed.", "error");
                         $scope.finishloading = true;
                         console.log(err);
-                    }
-                }, (err) => {
+                    });
+                }).catch((err) => {
                     setPageAlert("Error when obtaining registry agreements.", "error");
                     $scope.finishloading = true;
                     console.log(err);
@@ -156,9 +166,6 @@ $scope.createTpa = function (project, openTab = true) {
 
             tpa.context.validity.initial = '2019-01-01';
             tpa.context.definitions.scopes.development.project.default = projectIdNumber;
-
-            // Add notifications
-            // tpa.context.definitions.notifications = project.notifications ? projectScope.notifications : {};
 
             $http({
                 method: 'POST',
@@ -217,4 +224,57 @@ $scope.swapShowHidden = function () {
     $scope.displayItems.showHidden = !$scope.displayItems.showHidden;
     firstLoad = true;
     loadProjects();
+}
+
+$scope.togggleSlackbot = function (project) {
+    const projectId = project.projectId;
+    const classId = project.registryagreement ? project.registryagreement?.context?.definitions?.scopes?.development?.class?.default : $scope.displayItems.course;
+
+    if (project.toggleSlack) {
+        $http({
+            method: 'DELETE',
+            url: `$_[infrastructure.external.director.default]/api/v1/tasks/slack-${projectId}`
+        }).then(() => {
+            project.toggleSlack = false;
+            project.slackTaskInfo = null;
+        }).catch(err => {
+            setPageAlert("Slackbot task could not be deactivated.", "error");
+            console.log(err);
+        });
+    } else {
+        $http({
+            method: 'GET',
+            url: `$_[infrastructure.external.assets.default]/api/v1/info/public/director/notificationScriptSimpl.js`
+        }).then(() => {
+            const task = {
+                id: `slack-${projectId}`,
+                script: `$_[infrastructure.internal.assets.default]/api/v1/public/director/notificationScriptSimpl.js`,
+                running: true,
+                config: {
+                    classId: classId,
+                    projectId: projectId,
+                    initialDate: new Date().toISOString(),
+                    finalDate: new Date((new Date().getTime() + 86400000 * 365)).toISOString(),
+                    slackHook: project.notifications.slack
+                },
+                init: new Date().toISOString(),
+                end: new Date((new Date().getTime() + 86400000 * 365)).toISOString(),
+                interval: 86400000,
+            }
+
+            $http({
+                method: 'POST',
+                url: `$_[infrastructure.external.director.default]/api/v1/tasks`,
+                headers: { 'Content-Type': 'application/json' },
+                data: task
+            }).then((directorResponse) => {
+                console.log(`Slackbot task activated for project ${projectId} until ${task.end}`);
+                project.slackTaskInfo = directorResponse.data;
+                project.toggleSlack = true;
+            }).catch(err => {
+                setPageAlert("Slackbot task could not be activated.", "error");
+                console.log(err);
+            });
+        });
+    }
 }
