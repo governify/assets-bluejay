@@ -122,10 +122,19 @@ Released   : 20140228
 									<li ng-repeat="project in tpaprojects[projectOwner] track by project.projectId"
 										style="padding: 0.5em; text-align: left;">
 										{{project.name ? project.name : project.projectId}}
-										<button ng-if="project.notifications.slack" type="button"
+										<button type="button" ng-if="project.notifications.slack"
+										class="btn btn-sm {{project.toggleSlack ? 'btn-info' : 'btn-danger'}}"
+										style="cursor: default; pointer-events:none;margin-left: -0.2rem;padding: 0 5px; float: right;">
+											<div class="form-check form-switch" style="pointer-events:all;min-height: auto; float:right; margin-bottom: 0.225rem;">
+												<input class="form-check-input" type="checkbox" id="flexSwitchCheckDefault" ng-checked="project.notifications.slackAdm ? true : false" ng-click="toggleAdmSlack($event, project)">
+											</div>
+										</button>
+										<button type="button" ng-if="project.notifications.slack"
 											class="tooltipbottom btn btn-sm {{project.toggleSlack ? 'btn-info' : 'btn-danger'}}" ng-click="togggleSlackbot(project)"
 											style="margin-left: 0.5em;padding: 0 5px; float: right;">
-											<span style="display: flex; align-items: center; gap:0.3rem"><i class="fa fa-slack" style="padding:0; font-size:0.6rem; color: #ffffff;"></i> Alerts</span>
+											<span style="display: flex; align-items: center; gap:0.3rem"><i class="fa fa-slack" style="padding:0; font-size:0.6rem; color: #ffffff;"></i> 
+												Alerts
+											</span>
 											<span class="tooltipbottomtext">
 												<li><b>Hook channel:</b> {{project.notifications.slack}}</li>
 												<li ng-if="project.slackTaskInfo"><b>Message interval:</b> {{project.slackTaskInfo.interval / (1000 * 3600 * 24)}} day(s)</li>

@@ -90,6 +90,7 @@ function loadProjects() {
                             console.info("Loaded execution from director.");
                             project.toggleSlack = true;
                             project.slackTaskInfo = directorResponse.data;
+                            project.notifications.slackAdm = directorResponse.data?.config?.slackAdm;
                         }).catch( directorErr => {
                             if (directorErr.status !== 404) console.log(directorErr);                
                         });
@@ -255,7 +256,8 @@ $scope.togggleSlackbot = function (project) {
                     projectId: projectId,
                     initialDate: new Date().toISOString(),
                     finalDate: new Date((new Date().getTime() + 86400000 * 365)).toISOString(),
-                    slackHook: project.notifications.slack
+                    slackHook: project.notifications.slack,
+                    slackAdm: project.notifications.slackAdm,
                 },
                 init: new Date().toISOString(),
                 end: new Date((new Date().getTime() + 86400000 * 365)).toISOString(),
@@ -276,5 +278,19 @@ $scope.togggleSlackbot = function (project) {
                 console.log(err);
             });
         });
+    }
+}
+
+$scope.toggleAdmSlack = function (ev, project) {
+    if (project.notifications.slackAdm) {
+        delete project.notifications.slackAdm;
+    } else {
+        if (!$scope.slackAdm) {
+            ev.preventDefault();
+            setPageAlert("Slackbot admin mode could not be activated. Slackbot admin hook is not set.", "error")
+        }
+        else {
+            project.notifications.slackAdm = $scope.slackAdm;
+        }
     }
 }
