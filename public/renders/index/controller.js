@@ -15,6 +15,7 @@ var firstLoad = true;
 var defaultProject = '';
 
 $scope.developmentScopeJSON = {};
+$scope.slackAdm = localStorage.getItem('slackWebHook') ? localStorage.getItem('slackWebHook') : null;
 
 const setPageAlert = (message, type) => {
     $scope.displayItems.statusMessage = message;
@@ -292,5 +293,16 @@ $scope.toggleAdmSlack = function (ev, project) {
         else {
             project.notifications.slackAdm = $scope.slackAdm;
         }
+    }
+}
+
+$scope.setAdminWebhook = function (evt) {
+    const input = evt.target.parentElement.children[0];
+    if (input.value) {
+        $scope.slackAdm = input.value;
+        localStorage.setItem("slackWebHook", input.value);
+        setPageAlert("Slackbot admin hook successfully configured.", "success");
+    } else {
+        setPageAlert("Invalid webhook.", "error");
     }
 }
