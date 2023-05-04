@@ -1,4 +1,6 @@
 .theia
+private/scope-manager
+!private/scope-manager/scopes.json.example
 public/database/backups/*
 public/renders/tpa/*
 !public/renders/tpa/template.json
