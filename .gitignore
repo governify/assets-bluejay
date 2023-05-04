@@ -1,3 +1,4 @@
+.theia
 public/database/backups/*
 public/renders/tpa/*
 !public/renders/tpa/template.json
