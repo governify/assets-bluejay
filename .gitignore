@@ -7,7 +7,7 @@ public/renders/tpa/*
 !public/renders/tpa/tpa.css
 public/director/*
 !public/director/notification-config.json
-!public/director/notificationScript.js
+!public/director/notificationScriptSimpl.js
 !public/director/notificationSimulation.js
 !public/director/template.json
 !public/director/template.js
