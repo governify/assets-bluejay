@@ -16,6 +16,9 @@ var defaultProject = '';
 
 $scope.developmentScopeJSON = {};
 $scope.slackAdm = localStorage.getItem('slackWebHook') ? localStorage.getItem('slackWebHook') : null;
+//days
+$scope.slackAdmInterval = localStorage.getItem('slackAdmInterval') ? localStorage.getItem('slackAdmInterval') : 1;
+//TODO: true if one project has notifications for any tpaProjects
 $scope.slackAdmSelected = false;
 
 const setPageAlert = (message, type) => {
@@ -310,12 +313,12 @@ $scope.toggleAdmSlackbot = function (project) {
                     classId: classId,
                     projectId: projectId,
                     initialDate: new Date().toISOString(),
-                    finalDate: new Date((new Date().getTime() + 8000 * 365)).toISOString(),
+                    finalDate: new Date((new Date().getTime() + $scope.slackAdmInterval*24*3600*1000 * 365)).toISOString(),
                     slackHook: project.notifications.slackAdm,
                 },
                 init: new Date().toISOString(),
-                end: new Date((new Date().getTime() + 8000 * 365)).toISOString(),
-                interval: 8000,
+                end: new Date((new Date().getTime() + $scope.slackAdmInterval*24*3600*1000 * 365)).toISOString(),
+                interval: $scope.slackAdmInterval*24*3600*1000,
             }
 
             $http({
@@ -379,5 +382,15 @@ $scope.setAdminWebhook = function (evt) {
         setPageAlert("Slackbot admin hook successfully configured.", "success");
     } else {
         setPageAlert("Invalid webhook.", "error");
+    }
+}
+$scope.setSlackAdmInterval = function (evt) {
+    const input = evt.target.parentElement.children[0];
+    if (input.value) {
+        $scope.slackAdmInterval = input.value;
+        localStorage.setItem("slackAdmInterval", input.value);
+        setPageAlert("Notification interval successfully configured.", "success");
+    } else {
+        setPageAlert("Invalid interval.", "error");
     }
 }
