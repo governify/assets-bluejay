@@ -15,11 +15,14 @@ var firstLoad = true;
 var defaultProject = '';
 
 $scope.developmentScopeJSON = {};
+
 $scope.slackAdm = localStorage.getItem('slackWebHook') ? localStorage.getItem('slackWebHook') : null;
-//days
-$scope.slackAdmInterval = localStorage.getItem('slackAdmInterval') ? localStorage.getItem('slackAdmInterval') : 1;
+//interval between notifications in seconds
+$scope.adminNotificationsInterval = localStorage.getItem('adminNotificationsInterval') ? localStorage.getItem('adminNotificationsInterval') : 1;
+$scope.studentNotificationsInterval = localStorage.getItem('studentNotificationsInterval') ? localStorage.getItem('studentNotificationsInterval') : 1;
 //TODO: true if one project has notifications for any tpaProjects
-$scope.slackAdmSelected = false;
+$scope.allAdminNotifications = false;
+$scope.allStudentNotifications = false;
 
 const setPageAlert = (message, type) => {
     $scope.displayItems.statusMessage = message;
@@ -313,12 +316,12 @@ $scope.toggleAdmSlackbot = function (project) {
                     classId: classId,
                     projectId: projectId,
                     initialDate: new Date().toISOString(),
-                    finalDate: new Date((new Date().getTime() + $scope.slackAdmInterval*24*3600*1000 * 365)).toISOString(),
+                    finalDate: new Date((new Date().getTime() + $scope.adminNotificationsInterval*1000 * 365)).toISOString(),
                     slackHook: project.notifications.slackAdm,
                 },
                 init: new Date().toISOString(),
-                end: new Date((new Date().getTime() + $scope.slackAdmInterval*24*3600*1000 * 365)).toISOString(),
-                interval: $scope.slackAdmInterval*24*3600*1000,
+                end: new Date((new Date().getTime() + $scope.adminNotificationsInterval*1000 * 365)).toISOString(),
+                interval: $scope.adminNotificationsInterval*1000,
             }
 
             $http({
@@ -338,7 +341,7 @@ $scope.toggleAdmSlackbot = function (project) {
     }
 }
 $scope.toggleAllAdmSlack = function (ev) {
-    if(!$scope.slackAdmSelected){//activate
+    if(!$scope.allAdminNotifications){//activate
         if (!$scope.slackAdm) {
             ev.preventDefault();
             setPageAlert("Slackbot admin mode could not be activated. Slackbot admin hook is not set.", "error")
@@ -354,7 +357,7 @@ $scope.toggleAllAdmSlack = function (ev) {
                 console.log(project.notifications);
                 $scope.toggleAdmSlackbot(project)
             }
-            $scope.slackAdmSelected = true;
+            $scope.allAdminNotifications = true;
         }
 
     }else{//deactivate
@@ -367,13 +370,15 @@ $scope.toggleAllAdmSlack = function (ev) {
 
             $scope.toggleAdmSlackbot(project)
         }
-        $scope.slackAdmSelected = false;
+        $scope.allAdminNotifications = false;
 
     }
     console.log($scope.tpaprojects);
 }
 
-
+$scope.toggleAllSlack= function($event){
+    console.log($scope.studentNotificationsInterval);
+}
 $scope.setAdminWebhook = function (evt) {
     const input = evt.target.parentElement.children[0];
     if (input.value) {
@@ -384,12 +389,24 @@ $scope.setAdminWebhook = function (evt) {
         setPageAlert("Invalid webhook.", "error");
     }
 }
-$scope.setSlackAdmInterval = function (evt) {
+
+/**
+ * 
+ * Sets the time in seconds between notifications.
+ * Stores the value in localStorage
+ * 
+ * @param {*} evt 
+ * @param {*} forAdmin  true = admin, false = students
+ */
+$scope.setSlackInterval = function (evt,forAdmin) {
+
     const input = evt.target.parentElement.children[0];
-    if (input.value) {
-        $scope.slackAdmInterval = input.value;
-        localStorage.setItem("slackAdmInterval", input.value);
-        setPageAlert("Notification interval successfully configured.", "success");
+    if (input.value && !isNaN(input.value)) {
+        forAdmin ? $scope.adminNotificationsInterval = input.value 
+            : $scope.studentNotificationsInterval = input.value;
+        
+        localStorage.setItem(forAdmin?"adminNotificationsInterval":"studentNotificationsInterval", input.value);
+        setPageAlert("Notification interval for "+(forAdmin?"admin":"students")+" successfully configured. (Needs restart)", "success");
     } else {
         setPageAlert("Invalid interval.", "error");
     }
