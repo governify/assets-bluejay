@@ -97,7 +97,7 @@ Released   : 20140228
 						Off
 						<div class="form-switch" style="pointer-events:all; margin-top: -2px;">
 							<input class="form-check-input" type="checkbox" ng-checked="AdmNotifications ? true : false"
-								ng-click="toggleAllAdmSlack($event)">
+								ng-click="toggleAllSlack($event,true)">
 						</div>
 						On
 						<span class="tooltipbottomtext">
@@ -133,11 +133,11 @@ Released   : 20140228
 
 			<!-- ---------------- Alerts (FIXED to top) ---------------- -->
 			<div ng-if="displayItems.statusType !== undefined"
-				class="alert alert-dismissible fade show {{displayItems.statusType === 'error' ? 'alert-danger' : 'alert-success'}}"
+				class="alert alert-dismissible fade show {{displayItems.statusType === 'error' ? 'alert-danger' : displayItems.statusType === 'warning'?'alert-warning' : 'alert-success'}}"
 				role="alert" style="position: absolute; width: 100%; z-index: 1;top: 192px; margin-left: -10px;">
 				<button type="button" class="btn-close" aria-label="Close"
 					ng-click="displayItems.statusType = undefined"><span aria-hidden="true"></button>
-				<span style="font-weight: bold;">{{displayItems.statusType === 'error' ? 'Error!' : 'Success!'}}</span>
+				<span style="font-weight: bold;">{{displayItems.statusType === 'error' ? 'Error!' : displayItems.statusType === 'warning'?'Warning!' : 'Success!'}}</span>
 				{{displayItems.statusMessage}}
 			</div>
 
@@ -203,7 +203,7 @@ Released   : 20140228
 											<div class="form-switch" style="pointer-events:all; margin-top: -2px;">
 												<input class="form-check-input" type="checkbox"
 													ng-checked="allStudentsNotifications ? true : false"
-													ng-click="toggleAllSlack($event)">
+													ng-click="toggleAllSlack($event,false)">
 											</div>
 											On
 											<span class="tooltipbottomtext">
@@ -242,7 +242,7 @@ Released   : 20140228
 											<div class="notification-switch-box tooltipbottom {{project.notifications.slack?'':'hide'}}"  style="margin-left:0.5em;">
 												<b>Off</b>
 												<div class="form-check form-switch" style="pointer-events:all;min-height: auto; display: flex; justify-content: center; ">
-													<input class="form-check-input" type="checkbox" id="flexSwitchCheckDefault" ng-checked="project.toggleSlack" ng-click="togggleSlackbot(project)">
+													<input class="form-check-input" type="checkbox" id="flexSwitchCheckDefault" ng-checked="project.toggleSlack" ng-click="toggleSlackbot(project,false)">
 												</div>
 												<b>On</b>
 												<span class="tooltipbottomtext">

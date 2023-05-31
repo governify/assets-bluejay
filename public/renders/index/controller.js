@@ -235,150 +235,134 @@ $scope.swapShowHidden = function () {
     loadProjects();
 }
 
-$scope.togggleSlackbot = function (project) {
-    const projectId = project.projectId;
-    const classId = project.registryagreement ? project.registryagreement?.context?.definitions?.scopes?.development?.class?.default : $scope.displayItems.course;
-
-    if (project.toggleSlack) {
-        $http({
-            method: 'DELETE',
-            url: `$_[infrastructure.external.director.default]/api/v1/tasks/slack-${projectId}`
-        }).then(() => {
-            project.toggleSlack = false;
-            project.slackTaskInfo = null;
-        }).catch(err => {
-            setPageAlert("Slackbot task could not be deactivated.", "error");
-            console.log(err);
-        });
-    } else {
-        $http({
-            method: 'GET',
-            url: `$_[infrastructure.external.assets.default]/api/v1/info/public/director/notificationScriptSimpl.js`
-        }).then(() => {
-            const task = {
-                id: `slack-${projectId}`,
-                script: `$_[infrastructure.internal.assets.default]/api/v1/public/director/notificationScriptSimpl.js`,
-                running: true,
-                config: {
-                    classId: classId,
-                    projectId: projectId,
-                    initialDate: new Date().toISOString(),
-                    finalDate: new Date((new Date().getTime() + 8000 * 365)).toISOString(),
-                    slackHook: project.notifications.slack,
-                },
-                init: new Date().toISOString(),
-                end: new Date((new Date().getTime() + 8000 * 365)).toISOString(),
-                interval: 8000,
-            }
-
+$scope.toggleSlackbot = function (project,forAdmin) {
+    try {
+        
+        const projectId = project.projectId;
+        const classId = project.registryagreement ? project.registryagreement?.context?.definitions?.scopes?.development?.class?.default : $scope.displayItems.course;
+        if(!forAdmin && !project.notifications?.slack){ //slack not defined in student project
+            project.toggleSlack = !project.toggleSlack;
+            throw new Error("`project ${project.projectId} does not have slack, skipping`")
+        }
+        let activeSlack = forAdmin? project.toggleAdmSlack: project.toggleSlack
+        if (activeSlack) {//delete task then sets toggle to false
             $http({
-                method: 'POST',
-                url: `$_[infrastructure.external.director.default]/api/v1/tasks`,
-                headers: { 'Content-Type': 'application/json' },
-                data: task
-            }).then((directorResponse) => {
-                console.log(`Slackbot task activated for project ${projectId} until ${task.end}`);
-                project.slackTaskInfo = directorResponse.data;
-                project.toggleSlack = true;
+                method: 'DELETE',
+                url: `$_[infrastructure.external.director.default]/api/v1/tasks/${forAdmin?"admin-":""}slack-${projectId}`
+            }).then(() => {
+                console.log("deactivated task",project.name);
+                forAdmin? project.toggleAdmSlack = false 
+                :project.toggleSlack = false;
+                project.slackTaskInfo = null;
             }).catch(err => {
-                setPageAlert("Slackbot task could not be activated.", "error");
+                setPageAlert("Slackbot task could not be deactivated.", "error");
                 console.log(err);
             });
-        });
-    }
-}
-$scope.toggleAdmSlackbot = function (project) {
-    const projectId = project.projectId;
-    const classId = project.registryagreement ? project.registryagreement?.context?.definitions?.scopes?.development?.class?.default : $scope.displayItems.course;
-    if (project.toggleAdmSlack) {
-        console.log("deleting")
-        $http({
-            method: 'DELETE',
-            url: `$_[infrastructure.external.director.default]/api/v1/tasks/slack-${projectId}-admin`
-        }).then(() => {
-            project.toggleAdmSlack = false;
-            project.slackTaskInfo = null;
-        }).catch(err => {
-            setPageAlert("Slackbot task could not be deactivated.", "error");
-            console.log(err);
-        });
-    } else {
-        console.log("adding")
-        $http({
-            method: 'GET',
-            url: `$_[infrastructure.external.assets.default]/api/v1/info/public/director/notificationScriptSimpl.js`
-        }).then(() => {
-            const task = {
-                id: `slack-${projectId}-admin`,
-                script: `$_[infrastructure.internal.assets.default]/api/v1/public/director/notificationScriptSimpl.js`,
-                running: true,
-                config: {
-                    classId: classId,
-                    projectId: projectId,
-                    initialDate: new Date().toISOString(),
-                    finalDate: new Date((new Date().getTime() + $scope.adminNotificationsInterval*1000 * 365)).toISOString(),
-                    slackHook: project.notifications.slackAdm,
-                },
-                init: new Date().toISOString(),
-                end: new Date((new Date().getTime() + $scope.adminNotificationsInterval*1000 * 365)).toISOString(),
-                interval: $scope.adminNotificationsInterval*1000,
-            }
-
+        } else {
             $http({
-                method: 'POST',
-                url: `$_[infrastructure.external.director.default]/api/v1/tasks`,
-                headers: { 'Content-Type': 'application/json' },
-                data: task
-            }).then((directorResponse) => {
-                console.log(`Slackbot task activated for project ${projectId} until ${task.end}`);
-                project.slackTaskInfo = directorResponse.data;
-                project.toggleAdmSlack = true;
-            }).catch(err => {
-                setPageAlert("Slackbot task could not be activated.", "error");
-                console.log(err);
-            });
-        });
-    }
-}
-$scope.toggleAllAdmSlack = function (ev) {
-    if(!$scope.allAdminNotifications){//activate
-        if (!$scope.slackAdm) {
-            ev.preventDefault();
-            setPageAlert("Slackbot admin mode could not be activated. Slackbot admin hook is not set.", "error")
-        }else{
-            console.log("activated all projects notifications")
-            for (const key in $scope.tpaprojects) {
-                const project = $scope.tpaprojects[key][0];
-                if(project.notifications){
-                    project.notifications.slackAdm = $scope.slackAdm
-                }else{
-                    project.notifications = {"slackAdm" : $scope.slackAdm};
+                method: 'GET',
+                url: `$_[infrastructure.external.assets.default]/api/v1/info/public/director/notificationScriptSimpl.js`
+            }).then(() => {
+                // interval in seconds * 1000 -> miliseconds
+                const selectedInterval = forAdmin? $scope.adminNotificationsInterval*1000 : $scope.studentNotificationsInterval*1000
+                const task = {
+                    id: `${forAdmin?"admin-":""}slack-${projectId}`,
+                    script: `$_[infrastructure.internal.assets.default]/api/v1/public/director/notificationScriptSimpl.js`,
+                    running: true,
+                    config: {
+                        classId: classId,
+                        projectId: projectId,
+                        initialDate: new Date().toISOString(),
+                        finalDate: new Date((new Date().getTime() + selectedInterval * 365)).toISOString(),
+                        slackHook: forAdmin? project.notifications.slackAdm :project.notifications.slack,
+                    },
+                    init: new Date().toISOString(),
+                    end: new Date((new Date().getTime() + selectedInterval * 365)).toISOString(),
+                    interval: selectedInterval,
                 }
-                console.log(project.notifications);
-                $scope.toggleAdmSlackbot(project)
+
+                $http({
+                    method: 'POST',
+                    url: `$_[infrastructure.external.director.default]/api/v1/tasks`,
+                    headers: { 'Content-Type': 'application/json' },
+                    data: task
+                }).then((directorResponse) => {
+                    console.log(`Slackbot task activated for project ${project.name} until ${task.end}, interval ${task.interval}`);
+                    project.slackTaskInfo = directorResponse.data;
+                    forAdmin ? project.toggleAdmSlack = true : project.toggleSlack = true;
+                }).catch(err => {
+                    setPageAlert("Slackbot task could not be activated.", "error");
+                    console.log(err);
+                });
+            });
+        }
+    } catch (error) {
+        console.log(error.message);
+    }
+}
+
+$scope.toggleAllSlack = function (ev,forAdmin) {
+    let selectedToggle = forAdmin ? $scope.allAdminNotifications : $scope.allStudentNotifications
+    if(!selectedToggle){//activate
+        
+        if (forAdmin && !$scope.slackAdm) {//throws error
+            ev.preventDefault();
+            setPageAlert("Notifications for admin could not be activated. Slackbot admin webhook is not set.", "error")
+        }else{//all good
+            console.log("activating all projects notifications")
+            let projectsAlreadyActive = []
+            for (const owner in $scope.tpaprojects) {
+                const ownerProjects = $scope.tpaprojects[owner];
+                for(const projectIndex in ownerProjects){
+                    const project = ownerProjects[projectIndex];
+                    if(forAdmin){ //sets the admin slack
+                        if(project.notifications){
+                            project.notifications.slackAdm = $scope.slackAdm
+                        }else{
+                            project.notifications = {"slackAdm" : $scope.slackAdm};
+                        }
+                    }
+                    if(forAdmin?!project.toggleAdmSlack:!project.toggleSlack){ //was not already activated, turn off to reset
+                        $scope.toggleSlackbot(project,forAdmin)
+                    }else{
+                        console.log(`${project.name} was already activated, couldnt activate`)
+                        projectsAlreadyActive.push(project.name)
+                    }
+
+                }
             }
-            $scope.allAdminNotifications = true;
+            forAdmin?
+            $scope.allAdminNotifications = true :  $scope.allStudentNotifications = true
+            if(projectsAlreadyActive.length > 0){
+                setPageAlert(`Some projects were already activated [${projectsAlreadyActive}], turn off and on to apply changes.`, "warning")
+            }
+
         }
 
     }else{//deactivate
         console.log("deactivated all projects notifications")
-        for (const key in $scope.tpaprojects) {
-            const project = $scope.tpaprojects[key][0];
-            if (project.notifications.slackAdm) {
-                delete project.notifications.slackAdm;
+        for (const owner in $scope.tpaprojects) {
+            const ownerProjects = $scope.tpaprojects[owner];
+            for(const projectIndex in ownerProjects){
+                const project = ownerProjects[projectIndex];
+                if(forAdmin?project.toggleAdmSlack:project.toggleSlack){ //only if was active, toggle would turn it on if it was deactivated(bad idea)
+                    $scope.toggleSlackbot(project,forAdmin)
+                }else{
+                    console.log(`${project.name} was not active, cant deactivate`)
+                }
             }
-
-            $scope.toggleAdmSlackbot(project)
         }
-        $scope.allAdminNotifications = false;
+        forAdmin? $scope.allAdminNotifications = false : $scope.allStudentNotifications = false
 
     }
     console.log($scope.tpaprojects);
 }
 
-$scope.toggleAllSlack= function($event){
-    console.log($scope.studentNotificationsInterval);
-}
+
+/**
+ * Sets the admin webhook, used to send notifications to that channel in slack.com
+ * @param {*} evt 
+ */
 $scope.setAdminWebhook = function (evt) {
     const input = evt.target.parentElement.children[0];
     if (input.value) {
