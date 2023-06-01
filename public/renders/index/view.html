@@ -83,10 +83,10 @@ Released   : 20140228
 					<!-- set time for admin notifications -->
 					<div class="input-group input-group-sm" style="width:auto">
 						<select class="form-control" >
-							<option value="8" ng-selected="studentNotificationsInterval == 8">8 Seconds</option>
-							<option value="3600" ng-selected="studentNotificationsInterval == 3600">1 Hour</option>
-							<option value="86400" ng-selected="studentNotificationsInterval == 86400">1 Day</option>
-							<option value="604800" ng-selected="studentNotificationsInterval == 604800">1 Week</option>
+							<option value="8" ng-selected="adminNotificationsInterval == 8">8 Seconds</option>
+							<option value="3600" ng-selected="adminNotificationsInterval == 3600">1 Hour</option>
+							<option value="86400" ng-selected="adminNotificationsInterval == 86400">1 Day</option>
+							<option value="604800" ng-selected="adminNotificationsInterval == 604800">1 Week</option>
 						</select>
 						<button class="btn btn-primary btn-sm" type="button" ng-click="setSlackInterval($event,true)">
 							Set
@@ -96,7 +96,7 @@ Released   : 20140228
 					<div class="notification-switch-box tooltipbottom">
 						Off
 						<div class="form-switch" style="pointer-events:all; margin-top: -2px;">
-							<input class="form-check-input" type="checkbox" ng-checked="AdmNotifications ? true : false"
+							<input class="form-check-input" type="checkbox" ng-checked="allAdminNotifications"
 								ng-click="toggleAllSlack($event,true)">
 						</div>
 						On
@@ -202,7 +202,7 @@ Released   : 20140228
 											Off
 											<div class="form-switch" style="pointer-events:all; margin-top: -2px;">
 												<input class="form-check-input" type="checkbox"
-													ng-checked="allStudentsNotifications ? true : false"
+													ng-checked="allStudentNotifications"
 													ng-click="toggleAllSlack($event,false)">
 											</div>
 											On
