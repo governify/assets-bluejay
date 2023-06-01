@@ -21,7 +21,6 @@ $scope.slackAdm = localStorage.getItem('slackWebHook') ? localStorage.getItem('s
 const defaultInterval = 86400;
 $scope.adminNotificationsInterval = localStorage.getItem('adminNotificationsInterval') ? localStorage.getItem('adminNotificationsInterval') : defaultInterval;
 $scope.studentNotificationsInterval = localStorage.getItem('studentNotificationsInterval') ? localStorage.getItem('studentNotificationsInterval') : defaultInterval;
-//TODO: true if one project has notifications for any tpaProjects
 $scope.allAdminNotifications = localStorage.getItem('allAdminNotifications') == "true";
 $scope.allStudentNotifications = localStorage.getItem('allStudentNotifications') == "true";
 
@@ -255,7 +254,7 @@ $scope.toggleSlackbot = function (project,forAdmin) {
         const classId = project.registryagreement ? project.registryagreement?.context?.definitions?.scopes?.development?.class?.default : $scope.displayItems.course;
         if(!forAdmin && !project.notifications?.slack){ //slack not defined in student project
             project.toggleSlack = !project.toggleSlack;
-            throw new Error("`project ${project.projectId} does not have slack, skipping`")
+            throw new Error("project '"+project.name+"' does not have slack, skipping")
         }
         let activeSlack = forAdmin? project.toggleAdmSlack: project.toggleSlack
         if (activeSlack) {//delete task then sets toggle to false
@@ -263,12 +262,12 @@ $scope.toggleSlackbot = function (project,forAdmin) {
                 method: 'DELETE',
                 url: `$_[infrastructure.external.director.default]/api/v1/tasks/${forAdmin?"admin-":""}slack-${projectId}`
             }).then(() => {
-                console.log("deactivated task",project.name);
+                console.log("deactivated "+(forAdmin?"admin":"student")+" task for:'"+project.name+"'");
                 forAdmin? project.toggleAdmSlack = false 
                 :project.toggleSlack = false;
                 project.slackTaskInfo = null;
             }).catch(err => {
-                setPageAlert("Slackbot task could not be deactivated.", "error");
+                setPageAlert("Slackbot "+(forAdmin?"admin":"student")+" task could not be deactivated.", "error");
                 console.log(err);
             });
         } else {
@@ -300,7 +299,7 @@ $scope.toggleSlackbot = function (project,forAdmin) {
                     headers: { 'Content-Type': 'application/json' },
                     data: task
                 }).then((directorResponse) => {
-                    console.log(`Slackbot task activated for project ${project.name} until ${task.end}, interval ${task.interval}`);
+                    console.log(`${forAdmin?"admin":"student"} Slackbot task activated for project '${project.name}' until ${task.end}, interval ${task.interval}`);
                     project.slackTaskInfo = directorResponse.data;
                     forAdmin ? project.toggleAdmSlack = true : project.toggleSlack = true;
                 }).catch(err => {
@@ -322,7 +321,7 @@ $scope.toggleAllSlack = function (ev,forAdmin) {
             ev.preventDefault();
             setPageAlert("Notifications for admin could not be activated. Slackbot admin webhook is not set.", "error")
         }else{//all good
-            console.log("activating all projects notifications")
+            console.log("activating "+(forAdmin?"admin":"student")+" notifications for all projects ")
             let projectsAlreadyActive = []
             for (const owner in $scope.tpaprojects) {
                 const ownerProjects = $scope.tpaprojects[owner];
@@ -338,7 +337,7 @@ $scope.toggleAllSlack = function (ev,forAdmin) {
                     if(forAdmin?!project.toggleAdmSlack:!project.toggleSlack){ //was not already activated, turn off to reset
                         $scope.toggleSlackbot(project,forAdmin)
                     }else{
-                        console.log(project.name+ " was already activated, couldnt activate")
+                        console.log("'"+project.name+ "' was already activated, couldnt activate")
                         projectsAlreadyActive.push(project.name)
                     }
 
@@ -358,7 +357,7 @@ $scope.toggleAllSlack = function (ev,forAdmin) {
         }
 
     }else{//deactivate
-        console.log("deactivated all projects notifications")
+        console.log("deactivating all "+(forAdmin?"admin":"student")+" projects notifications")
         for (const owner in $scope.tpaprojects) {
             const ownerProjects = $scope.tpaprojects[owner];
             for(const projectIndex in ownerProjects){
@@ -366,7 +365,7 @@ $scope.toggleAllSlack = function (ev,forAdmin) {
                 if(forAdmin?project.toggleAdmSlack:project.toggleSlack){ //only if was active, toggle would turn it on if it was deactivated(bad idea)
                     $scope.toggleSlackbot(project,forAdmin)
                 }else{
-                    console.log(project.name+ "was not active, cant deactivate")
+                    console.log("'"+project.name+ "' was not active, cant deactivate")
                 }
             }
         }

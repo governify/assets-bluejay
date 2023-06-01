@@ -510,6 +510,7 @@
         visibility: hidden;
         background-color: #ececec;
         color: #000;
+		font-weight: normal;
         text-align: left;
         padding: 5px;
 		white-space: nowrap;

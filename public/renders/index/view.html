@@ -37,6 +37,12 @@ Released   : 20140228
 		display: flex;
 		font-weight: bold;
 		align-items: center;
+		border-radius: 5px;
+		user-select: none;
+		
+	}
+	.notification-switch-box input{
+		cursor: pointer;
 	}
 
 	.row2 {
@@ -45,8 +51,9 @@ Released   : 20140228
 		gap: 1rem;
 	}
 
-	.hide {
+	.hide *{
 		opacity: 0;
+		pointer-events: none;
 	}
 
 	.notification-box {
@@ -75,7 +82,7 @@ Released   : 20140228
 					<b>Admin Notifications:</b>
 					<!-- set admin webhook -->
 					<div class="input-group input-group-sm" style="width:auto">
-						<input type="text" class="form-control" placeholder="Admin webhook"
+						<input type="text" class="form-control" value="{{slackWebHook}}" placeholder="Admin webhook"
 							aria-label="Configure admin webhook" aria-describedby="button-addon2">
 						<button class="btn btn-primary btn-sm" type="button" id="button-addon2"
 							ng-click="setAdminWebhook($event)">Set</button>
@@ -93,7 +100,22 @@ Released   : 20140228
 						</button>
 					</div>
 					<!-- Admin notifications switch-->
-					<div class="notification-switch-box tooltipbottom">
+					<div class="row2 tooltipbottom" ng-click="toggleAllSlack($event,true)" type="button" style="gap:0; border:1px solid #ced4da; border-radius: 1rem;">
+						<div class="btn-sm" ng-if="!allAdminNotifications" style="background-color: #ced4da; padding:2 4 2 2; margin:2 4 2 2; border-radius: 1rem; width: 2rem; justify-content: center;">
+							OFF
+						</div>
+						<img style="width: 20px;margin: 0 10 0 10;" src="$_[infrastructure.external.assets.default]/api/v1/public/renders/index/images/slack_icon_2019.svg" alt="SVG Image">
+						<div class="btn-sm" ng-if="allAdminNotifications" style="background-color: #0D6EFD; padding:2; margin:2; border-radius: 1rem; width: 2rem; justify-content: center;color:white">
+							ON
+						</div>
+						<span class="tooltipbottomtext">
+							<li><b>Hook channel:</b> {{slackAdm}}</li>
+							<li><b>Message interval:</b>
+								{{adminNotificationsInterval==604800?"1 Week":adminNotificationsInterval==86400?"1 Day":adminNotificationsInterval==3600?"1 Hour":"Uknown"}} </li>
+						</span>
+					</div>
+
+					<!-- <div class="notification-switch-box tooltipbottom">
 						Off
 						<div class="form-switch" style="pointer-events:all; margin-top: -2px;">
 							<input class="form-check-input" type="checkbox" ng-checked="allAdminNotifications"
@@ -105,7 +127,7 @@ Released   : 20140228
 							<li><b>Message interval:</b>
 								{{adminNotificationsInterval==604800?"1 Week":adminNotificationsInterval==86400?"1 Day":adminNotificationsInterval==3600?"1 Hour":"Uknown"}} </li>
 						</span>
-					</div>
+					</div> -->
 				</div>
 
 				<div class="row2">
@@ -175,7 +197,7 @@ Released   : 20140228
 				<!-- Projects -->
 				<div class="row" ng-if="finishloading" style="width: 100%; margin: 0; justify-content: center;">
 					<!-- Audited Projects -->
-					<div class="col-sm-5 col-sm-offset-1" style="padding: 0px;">
+					<div class="col-sm-6 " style="padding: 0px;">
 						<div class="well" style="margin-right: 10px">
 							<h3 style="padding-bottom: 20px;">Audited projects</h3>
 							<!-- Students notification managment -->
@@ -229,30 +251,33 @@ Released   : 20140228
 											<!-- buttons in project -->
 											<div class="row2" style="gap:0;">
 
+												<!-- admin notification reference -->
+												<div class="row2 {{project.toggleAdmSlack?'':'hide'}}" style="margin-left: 0.5em;gap:0.1rem">
+													Admin
+													<img style="width: 20px;" src="$_[infrastructure.external.assets.default]/api/v1/public/renders/index/images/slack_icon_2019.svg" alt="SVG Image">
+												</div>
 												<a target="_blank"
 												href="$_[infrastructure.external.dashboard.default]/dashboard/script/dashboardLoader.js?dashboardURL=$_[infrastructure.external.reporter.default]/api/v4/dashboards/{{project.registryagreement.id}}/main"
 												class="btn btn-sm btn-success"
 												style="margin-left: 0.5em; padding: 0 5px;">
-											Dashboard
-											</a>
-											<a href="./render?model=$_[infrastructure.internal.registry.default]/api/v6/agreements/tpa-{{project.projectId}}&view=$_[infrastructure.internal.assets.default]/api/v1/public/renders/tpa/default.html&ctrl=$_[infrastructure.internal.assets.default]/api/v1/public/renders/tpa/default.js"
-											target="_blank" class="btn btn-sm btn-info"
-											style="margin-left: 0.5em;padding: 0 5px;">TPA</a>
-											<!-- switch-->
-											<div class="notification-switch-box tooltipbottom {{project.notifications.slack?'':'hide'}}"  style="margin-left:0.5em;">
-												<b>Off</b>
-												<div class="form-check form-switch" style="pointer-events:all;min-height: auto; display: flex; justify-content: center; ">
-													<input class="form-check-input" type="checkbox" id="flexSwitchCheckDefault" ng-checked="project.toggleSlack" ng-click="toggleSlackbot(project,false)">
+												Dashboard
+												</a>
+												<a href="./render?model=$_[infrastructure.internal.registry.default]/api/v6/agreements/tpa-{{project.projectId}}&view=$_[infrastructure.internal.assets.default]/api/v1/public/renders/tpa/default.html&ctrl=$_[infrastructure.internal.assets.default]/api/v1/public/renders/tpa/default.js"
+												target="_blank" class="btn btn-sm btn-info"
+												style="margin-left: 0.5em;padding: 0 5px;">TPA</a>
+												<!-- student notification switch-->
+												<div class="notification-switch-box tooltipbottom {{project.notifications.slack?'':'hide'}}"  style="margin-left:0.5em;">
+													<b>Off</b>
+													<div class="form-check form-switch" style="pointer-events:all;min-height: auto; display: flex; justify-content: center; ">
+														<input class="form-check-input" type="checkbox"  ng-checked="project.toggleSlack" ng-click="toggleSlackbot(project,false)">
+													</div>
+													<b>On</b>
+													<span class="tooltipbottomtext">
+														<li><b>Hook channel:</b>
+															{{project.notifications.slack}}</li>
+													</span>
 												</div>
-												<b>On</b>
-												<span class="tooltipbottomtext">
-													<li><b>Hook channel:</b>
-														{{project.notifications.slack}}</li>
-													<li><b>Message interval:</b>
-														{{studentNotificationsInterval==604800?"1 Week":studentNotificationsInterval==86400?"1 Day":studentNotificationsInterval==3600?"1 Hour":"Uknown"}}</li>
-												</span>
 											</div>
-										</div>
 									</div>
 										
 
@@ -265,7 +290,7 @@ Released   : 20140228
 						</div>
 					</div>
 					<!-- Non Audited Projects -->
-					<div class="col-sm-5" style="padding: 0;">
+					<div class="col-sm-6" style="padding: 0;">
 						<div class="well" style="margin-left: 10px">
 							<h3 style="padding-bottom: 20px;">Other projects</h3>
 							<a ng-click="createAllTpas(notpaprojects);"
