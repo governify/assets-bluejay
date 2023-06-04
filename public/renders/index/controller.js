@@ -1,7 +1,8 @@
 $scope.tpaprojects = [];
 $scope.notpaprojects = [];
 $scope.finishloading = false;
-
+//TODO: use env to determine
+$scope.isDevelopEnviroment = true;
 $scope.displayItems = {
     "course": "",
     "loadedCourses": false,
@@ -273,7 +274,7 @@ $scope.toggleSlackbot = function (project,forAdmin) {
         } else {
             $http({
                 method: 'GET',
-                url: `$_[infrastructure.external.assets.default]/api/v1/info/public/director/notificationScriptSimpl.js`
+                url: `$_[infrastructure.internal.assets.default]/api/v1/info/public/director/notificationScriptSimpl.js`
             }).then(() => {
                 // interval in seconds * 1000 -> miliseconds
                 const selectedInterval = forAdmin? $scope.adminNotificationsInterval*1000 : $scope.studentNotificationsInterval*1000
@@ -282,15 +283,21 @@ $scope.toggleSlackbot = function (project,forAdmin) {
                     script: `$_[infrastructure.internal.assets.default]/api/v1/public/director/notificationScriptSimpl.js`,
                     running: true,
                     config: {
+                        //urls differ when running in development or in production
+                        urls: {assets:`$_[infrastructure.internal.assets.default]`,scopes:`$_[infrastructure.internal.scopes.default]`,registry:`$_[infrastructure.internal.registry.default]`,dashboard:`$_[infrastructure.internal.dashboard.default]`,reporter:`$_[infrastructure.internal.reporter.default]`},
                         classId: classId,
                         projectId: projectId,
+                        projectName: project.name,
                         initialDate: new Date().toISOString(),
                         finalDate: new Date((new Date().getTime() + selectedInterval * 365)).toISOString(),
                         slackHook: forAdmin? project.notifications.slackAdm :project.notifications.slack,
+                        forAdmin: forAdmin, //displays different messages
                     },
                     init: new Date().toISOString(),
                     end: new Date((new Date().getTime() + selectedInterval * 365)).toISOString(),
                     interval: selectedInterval,
+                    code: 0, //skips oas warning
+                    message: "message" //skips oas warning
                 }
 
                 $http({

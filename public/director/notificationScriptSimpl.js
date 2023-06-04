@@ -5,7 +5,7 @@ module.exports.main = async (config) => {
   let initDate = new Date(config.initialDate);
   let finalDate = new Date(config.finalDate);
 
-  config.notificationConfig = await axios.get('https://assets.bluejay.governify.io/api/v1/public/director/notification-config.json').then((res) => res.data).catch(() => undefined)
+  config.notificationConfig = await axios.get(config.urls.assets+'/api/v1/public/director/notification-config.json').then((res) => res.data).catch(() => undefined)
 
   if (!config.notificationConfig) {
     console.log("Notification config not found")
@@ -20,7 +20,6 @@ module.exports.main = async (config) => {
   }, 0)
   try {
     config.days = Math.round((new Date() - initDate) / (1000 * 60 * 60 * 24)) + 1;
-    //let days = Math.round((finalDate - initDate) / (1000 * 60 * 60 * 24)) + 1;
     if(config.slackHook){
         config.hooks = {
             slack: config.slackHook
@@ -28,19 +27,10 @@ module.exports.main = async (config) => {
     }else{
         config.hooks = await getHooksUrls(config);
     }
-    if (config.slackAdm) {
-      config.hooks.slackAdm = config.slackAdm
-    }
     config.states = await getStates(config);
-    //for (let i = 0; i < days; i++) {
-    // if(!config.secondsPerDay || config.secondsPerDay <= 0){
-    //     config.secondsPerDay = 0.1
-    // }
-    // await new Promise(resolve => setTimeout(resolve, config.secondsPerDay * 1000));
     let to = new Date();
     to.setHours(23, 59, 59, 999)
     notificatePeriod(config, to, config.historieMax)
-    //}
   } catch (error) {
     console.log(error)
   }
@@ -49,7 +39,7 @@ return '';
 }
 
 async function getHooksUrls(config) {
-  const requestURL = 'http://scopes.bluejay.governify.io/api/v1/scopes/development/' + config.classId + '/' + config.projectId;
+  const requestURL = config.urls.scopes+'/api/v1/scopes/development/' + config.classId + '/' + config.projectId;
   let notifications = []
   await axios.get(requestURL).then((response) => {
     notifications = response.data.scope.notifications
@@ -62,15 +52,14 @@ async function getHooksUrls(config) {
 }
 
 async function getStates(config) {
-  let requestURL = 'https://registry.bluejay.governify.io/api/v6/agreements/tpa-' + config.projectId;
+  let requestURL = config.urls.registry+'/api/v6/agreements/tpa-' + config.projectId;
   let result = {}
 
   await axios.get(requestURL).then(async (response) => {
     const guarantees = response.data.terms.guarantees.map(guarantee => { return { id: guarantee.id, desc: guarantee.description, valueFunc: guarantee.of[0].objective.split(' >=')[0] } })
     for (let guarantee of guarantees) {
-        if (guarantee.id == 'PERCENT_GITHUB_ACTIONS_SUCCESSFULBUILDS' || guarantee.id == 'PERCENTAGE_PT_ONE_POINT_STORIES_OVER_80') {
             result[guarantee.id] = { desc: guarantee.desc, valueFunc: guarantee.valueFunc };
-            requestURL = 'https://registry.bluejay.governify.io/api/v6/states/tpa-' + config.projectId + '/guarantees/'
+            requestURL = config.urls.registry+'/api/v6/states/tpa-' + config.projectId + '/guarantees/'
                 + guarantee.id + '?' + new URLSearchParams({ lasts: (config.days + config.historieMax)*2,evidences:'false',withNoEvidences:'false'});
             console.log(requestURL)
             await axios.get(requestURL).then((response) => {
@@ -80,7 +69,6 @@ async function getStates(config) {
                 throw new Error("Error obtainig guarantee" + guarantee);
                 });
         }
-    }
   }).catch((err) => {
     console.log("Error obtainig guarantees");
   });
@@ -107,7 +95,7 @@ function notificatePeriod(config, to, length) {
     bodyText += ' • ' + stateMessage.emoji + config.states[guarantee].desc + ' ➜ ' + stateMessage.message + '\n';
   }
 
-  let bodyPost = (key) => ({
+  let bodyPost = (key,forAdmin) => ({
     blocks: [
       {
         "type": "header",
@@ -120,7 +108,7 @@ function notificatePeriod(config, to, length) {
         "type": "header",
         "text": {
           "type": "plain_text",
-          "text": `${key === "slackAdm" ? ("Team " + config.projectId + " from " + config.classId) : "Your team"} is fullfiling ${passedGuarantees} out of ${Object.keys(config.states).length}:`
+          "text": `${forAdmin ? ("Team '" + config.projectName + "' from " + config.classId) : ("Your team '"+config.projectName+"'")} is fullfiling ${passedGuarantees} out of ${Object.keys(config.states).length}:`
         }
       },
       {
@@ -136,13 +124,13 @@ function notificatePeriod(config, to, length) {
         "type": "section",
         "text": {
           "type": "mrkdwn",
-          "text": `*View your dashboard <https://dashboard.bluejay.governify.io/dashboard/script/dashboardLoader.js?dashboardURL=https://reporter.bluejay.governify.io/api/v4/dashboards/tpa-${config.projectId}/main|here>* (credentials: user/bluejay).`
+          "text": `*View your dashboard <${config.urls.dashboard}/dashboard/script/dashboardLoader.js?dashboardURL=${config.urls.reporter}/api/v4/dashboards/tpa-${config.projectId}/main|here>* (credentials: user/bluejay).`
         }
       }
     ]
   });
   for (let key in config.hooks) {
-    axios.post(config.hooks[key], bodyPost(key)).catch((err) => {
+    axios.post(config.hooks[key], bodyPost(key,config.forAdmin)).catch((err) => {
       console.log('Error sending feedback to ' + key)
     })
   }

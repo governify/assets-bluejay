@@ -90,7 +90,7 @@ Released   : 20140228
 					<!-- set time for admin notifications -->
 					<div class="input-group input-group-sm" style="width:auto">
 						<select class="form-control" >
-							<option value="8" ng-selected="adminNotificationsInterval == 8">8 Seconds</option>
+							<option value="8" ng-if="isDevelopEnviroment" ng-selected="adminNotificationsInterval == 8">8 Seconds</option>
 							<option value="3600" ng-selected="adminNotificationsInterval == 3600">Hourly</option>
 							<option value="86400" ng-selected="adminNotificationsInterval == 86400">Daily</option>
 							<option value="604800" ng-selected="adminNotificationsInterval == 604800">Weekly</option>
@@ -210,7 +210,7 @@ Released   : 20140228
 										<!-- set time for student notifications -->
 										<div class="input-group input-group-sm" style="width:auto">
 											<select class="form-control" >
-											  <option value="8" ng-selected="studentNotificationsInterval == 8">8 Seconds</option>
+											  <option value="8" ng-if="isDevelopEnviroment" ng-selected="studentNotificationsInterval == 8">8 Seconds</option>
 											  <option value="3600" ng-selected="studentNotificationsInterval == 3600">Hourly</option>
 											  <option value="86400" ng-selected="studentNotificationsInterval == 86400">Daily</option>
 											  <option value="604800" ng-selected="studentNotificationsInterval == 604800">Weekly</option>
