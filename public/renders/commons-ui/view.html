@@ -1,318 +1,376 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<style>
+    body {
+		background: url("$_[infrastructure.external.assets.default]/api/v1/public/renders/index/images/blue_mountains_1.jpg") !important;
+		background-size: auto !important;
+		background-attachment: fixed !important;
+        font-family: 'Didact Gothic', sans-serif;
+        max-width: 100vw !important;
+        
+	}
+    .bodyContainer{
+        display: grid;
+        grid-template-columns: 0.5fr 3fr 0.5fr;
+        grid-column-gap: 10px;
+        height: 100%;
+        padding: 50px;
+        min-width: 1750px;
+    }
+    .wrapper{
+        background-color: #ffffff;
+    }
+    .title {
+        text-align: center;
+		margin-bottom: 3em;
+	}
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+	.title h2 {
+		font-size: 2.7em;
+        font-weight: bold;
+	}
 
+	.title .byline {
+		font-size: 1.3em;
+		color: rgb(76,76,76,0.64);
+	}
+
+</style>
 <head>
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-	<title></title>
-	<link href="$_[infrastructure.external.assets.default]/api/v1/public/renders/commons-ui/default.css"
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link href="$_[infrastructure.external.assets.default]/api/v1/public/renders/commons-ui/default.css"
 		rel="stylesheet" type="text/css" media="all" />
 	<meta name="keywords" content="" />
 	<meta name="description" content="" />
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" 
 		integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w==" 
 		crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link href="https://fonts.googleapis.com/css?family=Didact+Gothic" rel="stylesheet" />
 </head>
-
 <body>
-	<!-- Alert box -->
+    <!-- Alert box -->
 	<div ng-if="alert.type" class="alert alert-{{alert.type}} alert-custom">
 		<span><strong>{{alert.header}}!</strong> {{alert.msg}}</span>
 		<button type="button" class="btn-close" ng-click="close_alert()"></button>
 	</div>
+    <main class="bodyContainer">
+        <div></div>
+        <div class="wrapper">
+            <a href="$_[infrastructure.external.render.default]"
+					class="btn btn-primary btn-sm" style="margin: 10px;">
+					Main page
+			</a>
+            <div class="title" style="padding: 30px 0 20px; margin: 0">
+                <h2>Panel de administración</h2>
+                <span class="byline">Configuración del commons de los servicios</span>
+            </div>
+            <ul class="nav nav-tabs">
+                <li class="nav-item">
+                  <a class="nav-link" href="./render?model=$_[infrastructure.internal.assets.default]/api/v1/public/renders/utils/database/model.json&view=$_[infrastructure.internal.assets.default]/api/v1/public/renders/utils/database/view.html&ctrl=$_[infrastructure.internal.assets.default]/api/v1/public/renders/utils/database/controller.js">Bases de datos</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link " href="./render?model=$_[infrastructure.internal.assets.default]/api/v1/public/renders/utils/director/tasksManagement/model.json&view=$_[infrastructure.internal.assets.default]/api/v1/public/renders/utils/director/tasksManagement/view.html&ctrl=$_[infrastructure.internal.assets.default]/api/v1/public/renders/utils/director/tasksManagement/controller.js">Gestion de tareas</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link " href="./render?model=$_[infrastructure.internal.assets.default]/api/v1/public/renders/utils/director/tasksTesting/model.json&view=$_[infrastructure.internal.assets.default]/api/v1/public/renders/utils/director/tasksTesting/view.html&ctrl=$_[infrastructure.internal.assets.default]/api/v1/public/renders/utils/director/tasksTesting/controller.js">Prueba de tareas</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link active" href="#" aria-current="page">Commons</a>
+                </li>
+            </ul>
+            <div style="padding: 40px;">
+                <div class='main-wrapper'>
 
-	<div class='main-wrapper'>
-
-		<!-- LOADER -->
-		<div ng-if="!finishloading"
-			style="position:absolute; left:50%; top:60%; margin-left: -171px; margin-top: -72px; z-index: 999;">
-			<img src="./utils/img/loading1_big_lgbg.gif" style="height: 100px;" />
-			<span style="font-size: 25px; margin-top: 10px;" class="col-sm-12">
-				Requesting services information...
-			</span>
-		</div>
-
-		<!-- EXTERNAL SERVICES PANEL -->
-		<div class = 'card card-default service-panel' style="margin-bottom: 20px;">
-			<div class="card-header clickable" ng-click="toggle_collapse($event)" style="grid-column: 1 / span 4;"><h4>External services</h4></div>
-			<div class='sub-panel-container'>
-
-				<!-- ACTIONS -->
-				<div class='column actions'>
-					<div class="card card-default">
-						<div class="card-header"><h4>Actions</h4></div>
-
-						<table class="table table-hover table-borderless">
-							<thead>
-								<th></th>
-								<th></th>
-								<th></th>
-							</thead>
-							<tr ng-repeat="service in services.external" 
-								class = "{{service.serviceName}}-row button-tr" 
-								data-ng-class="{'service-down': service.status == 'ERR', 
-												'service-warn': service.status == 'WARN'}">
-								<td>
-									<button ng-if="!service.modify" 
-											ng-disabled="editing || service.status != 'FINE'" 
-											ng-click="update_infrastructure(service)"
-											data-bs-toggle="tooltip" 
-											data-bs-original-title="Update infrastructure">
-										<i class="fas fa-sync-alt" aria-hidden="true"/>
-									</button>
-									<button ng-if="service.modify" 
-											ng-click="accept_edit(service)" 
-											id="{{service.serviceName}}-confirm">
-										<i class="fas fa-check" aria-hidden="true"/>
-									</button>
-								</td>
-								<td>
-									<button ng-if="!service.modify" 
-											ng-disabled="editing || service.status != 'FINE'" 
-											ng-click="toggle_edit(service)"
-											data-bs-toggle="tooltip" 
-											data-bs-original-title="Modify params">
-										<i class="fas fa-edit" aria-hidden="true"/>
-									</button>
-									<button ng-if="service.modify" 
-											ng-click="cancel_edit(service)" 
-											id="{{service.serviceName}}-cancel">
-										<i class="fas fa-times" aria-hidden="true"/>
-									</button>
-								</td>
-								<td>
-									<button ng-disabled="service.status == 'ERR'" 
-											ng-click="go_to(service)"
-											data-bs-toggle="tooltip" 
-											data-bs-original-title="Open in a new tab">
-										<i class="fas fa-external-link-alt" aria-hidden="true"/>
-									</button>
-								</td>
-							</tr>
-						</table>
-					</div>
-				</div>
-
-				<!-- SERVICE INFO-->
-				<div class='column service-info'>
-					<div class="card card-default">
-						<div class="card-header"><h4>Service Info</h4></div>
-						<table class="table table-hover table-borderless">
-							<thead>
-								<th>Service</th>
-								<th>Service Version</th>
-								<th>Commons Version</th>
-							</thead>
-
-							<tr ng-repeat="service in services.external" 
-								class="{{service.serviceName}}-row" 
-								data-ng-class="{'service-down': service.status == 'ERR', 
-												'service-warn': service.status == 'WARN'}">
-								<td>
-									<i 	style="float: left; margin-left: 10px;"
-										ng-if="service.status != 'FINE'"
-										class="fas"
-										data-ng-class="{'fa-exclamation-triangle' : service.status == 'WARN', 'fa-exclamation-circle' : service.status == 'ERR'}"
-										data-bs-toggle="tooltip" 
-										data-bs-original-title="{{service.msg}}">
-									</i>
-									<span>{{service.serviceName}}</span>
-								</td>
-								<td>{{service.serviceVersion}}</td>
-								<td>{{service.version}}</td>
-							</tr>
-						</table>
-					</div>
-				</div>
-
-				<!-- LOGS CONFIG -->
-				<div class='column logs-config'>
-					<div class="card card-default">
-						<div class="card-header"><h4>Logs Config</h4></div>
-						<table class="table table-hover table-borderless">
-							<thead>
-								<th>R.Logging</th>
-								<th>Type</th>
-								<th>Tracing</th>
-								<th>Timestamp</th>
-								<th>Tags</th>
-								<th>Level</th>
-							</thead>
-							<tr class="{{service.serviceName}}-row" 
-								ng-repeat="service in services.external" 
-								data-ng-class="{'service-down': service.status == 'ERR', 
-												'service-warn': service.status == 'WARN'}">
-								<td><input type="checkbox" ng-disabled="!service.modify" ng-model="service.requestLogging" ng-true-value="'true'" ng-false-value="'false'"></td>
-								<td><input type="checkbox" ng-disabled="!service.modify" ng-model="service.logger_config.type"></td>
-								<td><input type="checkbox" ng-disabled="!service.modify" ng-model="service.logger_config.tracing"></td>
-								<td><input type="checkbox" ng-disabled="!service.modify" ng-model="service.logger_config.timestamp"></td>
-								<td><input type="checkbox" ng-disabled="!service.modify" ng-model="service.logger_config.tags"></td>
-								<td><select ng-disabled="!service.modify" ng-model="service.logger_config.level" ng-options="v.num as v.text for v in logging_levels">
-							</tr>
-						</table>
-					</div>
-				</div>
-				
-				<!-- LOGS STORAGE -->
-				<div class='column logs-storage'>
-					<div class="card card-default">
-						<div class="card-header"><h4>Logs Storage</h4></div>
-						<table class="table table-hover table-borderless">
-							<thead>
-								<th>Level</th>
-							</thead>
-							<tr class="{{service.serviceName}}-row" 
-								ng-repeat="service in services.external" 
-								data-ng-class="{'service-down': service.status == 'ERR', 
-												'service-warn': service.status == 'WARN'}">
-								<td>
-									<select style="width: 80%;"
-											ng-disabled="!service.modify || !service.logger_config.storage"
-									 		ng-model="service.logger_config.storage.level" 
-											ng-options="v.num as v.text for v in logging_levels">
-								</td>
-							</tr>
-						</table>
-					</div>
-				</div>
-			</div>
-		</div>
-
-		<!-- INTERNAL SERVICES PANEL -->
-		<div class = 'card card-default service-panel'>
-			<div class="card-header clickable" ng-click="toggle_collapse($event)" style="grid-column: 1 / span 4;"><h4>Internal services</h4></div>
-			<div class='sub-panel-container'>
-
-				<!-- ACTIONS -->
-				<div class='column actions'>
-					<div class="card card-default">
-						<div class="card-header"><h4>Actions</h4></div>						
-						<table class="table table-hover table-borderless">
-							<thead>
-								<th></th>
-								<th></th>
-							</thead>
-							<tr ng-repeat="service in services.internal" 
-								class = "{{service.serviceName}}-row button-tr" 
-								data-ng-class="{'service-down': service.status == 'ERR', 
-												'service-warn': service.status == 'WARN'}">
-								<td>
-									<button ng-if="!service.modify" 
-											ng-disabled="editing || service.status != 'FINE'" 
-											ng-click="update_infrastructure(service)"
-											data-bs-toggle="tooltip" 
-											data-bs-original-title="Update infrastructure">
-										<i class="fas fa-sync-alt" aria-hidden="true"/>
-									</button>
-									<button ng-if="service.modify" 
-											ng-click="accept_edit(service)" 
-											id = "{{service.serviceName}}-confirm">
-										<i class="fas fa-check" aria-hidden="true"/>
-									</button>
-								</td>
-								<td>
-									<button ng-if="!service.modify" 
-											ng-disabled="editing || service.status != 'FINE'" 
-											ng-click="toggle_edit(service)"
-											data-bs-toggle="tooltip" 
-											data-bs-original-title="Modify params">
-										<i class="fas fa-edit" aria-hidden="true"/>
-									</button>
-									<button ng-if="service.modify" 
-											ng-click="cancel_edit(service)" 
-											id = "{{service.serviceName}}-cancel">
-										<i class="fas fa-times" aria-hidden="true"/>
-									</button>
-								</td>
-							</tr>
-						</table>
-					</div>
-				</div>
-
-				<!-- SERVICE INFO-->
-				<div class='column service-info'>
-					<div class="card card-default">
-						<div class="card-header"><h4>Service Info</h4></div>
-						<table class="table table-hover table-borderless">
-							<thead>
-								<th>Service</th>
-								<th>Service Version</th>
-								<th>Commons Version</th>
-							</thead>
-
-							<tr class="{{service.serviceName}}-row"
-								ng-repeat="service in services.internal" 
-								data-ng-class="{'service-down': service.status == 'ERR', 
-												'service-warn': service.status == 'WARN'}">
-								<td>
-									<i 	style="float: left; margin-left: 10px;"
-										ng-if="service.status != 'FINE'"
-										class="fas"
-										data-ng-class="{'fa-exclamation-triangle' : service.status == 'WARN', 'fa-exclamation-circle' : service.status == 'ERR'}"
-										data-bs-toggle="tooltip" 
-										data-bs-original-title="{{service.msg}}">
-									</i>
-									<span>{{service.serviceName}}</span>
-								</td>
-								<td>{{service.serviceVersion}}</td>
-								<td>{{service.version}}</td>
-							</tr>
-						</table>
-					</div>
-				</div>
-
-				<!-- LOGS CONFIG -->
-				<div class='column logs-config'>
-					<div class="card card-default">
-						<div class="card-header"><h4>Logs Config</h4></div>
-						<table class="table table-hover table-borderless">
-							<thead>
-								<th>R.Logging</th>
-								<th>Type</th>
-								<th>Tracing</th>
-								<th>Timestamp</th>
-								<th>Tags</th>
-								<th>Level</th>
-							</thead>
-							<tr class="{{service.serviceName}}-row"
-								ng-repeat="service in services.internal" 
-								data-ng-class="{'service-down': service.status == 'ERR', 
-												'service-warn': service.status == 'WARN'}">
-								<td><input type="checkbox" ng-disabled="!service.modify" ng-model="service.requestLogging" ng-true-value="'true'" ng-false-value="'false'"></td>
-								<td><input type="checkbox" ng-disabled="!service.modify" ng-model="service.logger_config.type"></td>
-								<td><input type="checkbox" ng-disabled="!service.modify" ng-model="service.logger_config.tracing"></td>
-								<td><input type="checkbox" ng-disabled="!service.modify" ng-model="service.logger_config.timestamp"></td>
-								<td><input type="checkbox" ng-disabled="!service.modify" ng-model="service.logger_config.tags"></td>
-								<td><select ng-disabled="!service.modify" ng-model="service.logger_config.level" ng-options="v.num as v.text for v in logging_levels">
-							</tr>
-						</table>
-					</div>
-				</div>
-				
-				<!-- LOGS STORAGE -->
-				<div class='column logs-storage'>
-					<div class="card card-default">
-						<div class="card-header"><h4>Logs Storage</h4></div>
-						<table class="table table-hover table-borderless">
-							<thead>
-								<th>Level</th>
-							</thead>
-							<tr class="{{service.serviceName}}-row"
-								ng-repeat="service in services.internal" 
-								data-ng-class="{'service-down': service.status == 'ERR', 
-												'service-warn': service.status == 'WARN'}">
-								<td>
-									<select style="width: 80%;"
-											ng-disabled="!service.modify || !service.logger_config.storage"
-											ng-model="service.logger_config.storage.level" 
-											ng-options="v.num as v.text for v in logging_levels">
-								</td>							
-							</tr>
-						</table>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
+                    <!-- LOADER -->
+                    <div ng-if="!finishloading"
+                        style="position:absolute; left:50%; top:60%; margin-left: -171px; margin-top: -72px; z-index: 999;">
+                        <img src="./utils/img/loading1_big_lgbg.gif" style="height: 100px;" />
+                        <span style="font-size: 25px; margin-top: 10px;" class="col-sm-12">
+                            Requesting services information...
+                        </span>
+                    </div>
+            
+                    <!-- EXTERNAL SERVICES PANEL -->
+                    <div class = 'card card-default service-panel' style="margin-bottom: 20px;">
+                        <div class="card-header clickable" ng-click="toggle_collapse($event)" style="grid-column: 1 / span 4;"><h4>External services</h4></div>
+                        <div class='sub-panel-container'>
+            
+                            <!-- ACTIONS -->
+                            <div class='column actions'>
+                                <div class="card card-default">
+                                    <div class="card-header"><h4>Actions</h4></div>
+            
+                                    <table class="table table-hover table-borderless">
+                                        <thead>
+                                            <th></th>
+                                            <th></th>
+                                            <th></th>
+                                        </thead>
+                                        <tr ng-repeat="service in services.external" 
+                                            class = "{{service.serviceName}}-row button-tr" 
+                                            data-ng-class="{'service-down': service.status == 'ERR', 
+                                                            'service-warn': service.status == 'WARN'}">
+                                            <td>
+                                                <button ng-if="!service.modify" 
+                                                        ng-disabled="editing || service.status != 'FINE'" 
+                                                        ng-click="update_infrastructure(service)"
+                                                        data-bs-toggle="tooltip" 
+                                                        data-bs-original-title="Update infrastructure">
+                                                    <i class="fas fa-sync-alt" aria-hidden="true"/>
+                                                </button>
+                                                <button ng-if="service.modify" 
+                                                        ng-click="accept_edit(service)" 
+                                                        id="{{service.serviceName}}-confirm">
+                                                    <i class="fas fa-check" aria-hidden="true"/>
+                                                </button>
+                                            </td>
+                                            <td>
+                                                <button ng-if="!service.modify" 
+                                                        ng-disabled="editing || service.status != 'FINE'" 
+                                                        ng-click="toggle_edit(service)"
+                                                        data-bs-toggle="tooltip" 
+                                                        data-bs-original-title="Modify params">
+                                                    <i class="fas fa-edit" aria-hidden="true"/>
+                                                </button>
+                                                <button ng-if="service.modify" 
+                                                        ng-click="cancel_edit(service)" 
+                                                        id="{{service.serviceName}}-cancel">
+                                                    <i class="fas fa-times" aria-hidden="true"/>
+                                                </button>
+                                            </td>
+                                            <td>
+                                                <button ng-disabled="service.status == 'ERR'" 
+                                                        ng-click="go_to(service)"
+                                                        data-bs-toggle="tooltip" 
+                                                        data-bs-original-title="Open in a new tab">
+                                                    <i class="fas fa-external-link-alt" aria-hidden="true"/>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+            
+                            <!-- SERVICE INFO-->
+                            <div class='column service-info'>
+                                <div class="card card-default">
+                                    <div class="card-header"><h4>Service Info</h4></div>
+                                    <table class="table table-hover table-borderless">
+                                        <thead>
+                                            <th>Service</th>
+                                            <th>Service Version</th>
+                                            <th>Commons Version</th>
+                                        </thead>
+            
+                                        <tr ng-repeat="service in services.external" 
+                                            class="{{service.serviceName}}-row" 
+                                            data-ng-class="{'service-down': service.status == 'ERR', 
+                                                            'service-warn': service.status == 'WARN'}">
+                                            <td>
+                                                <i 	style="float: left; margin-left: 10px;"
+                                                    ng-if="service.status != 'FINE'"
+                                                    class="fas"
+                                                    data-ng-class="{'fa-exclamation-triangle' : service.status == 'WARN', 'fa-exclamation-circle' : service.status == 'ERR'}"
+                                                    data-bs-toggle="tooltip" 
+                                                    data-bs-original-title="{{service.msg}}">
+                                                </i>
+                                                <span>{{service.serviceName}}</span>
+                                            </td>
+                                            <td>{{service.serviceVersion}}</td>
+                                            <td>{{service.version}}</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+            
+                            <!-- LOGS CONFIG -->
+                            <div class='column logs-config'>
+                                <div class="card card-default">
+                                    <div class="card-header"><h4>Logs Config</h4></div>
+                                    <table class="table table-hover table-borderless">
+                                        <thead>
+                                            <th>R.Logging</th>
+                                            <th>Type</th>
+                                            <th>Tracing</th>
+                                            <th>Timestamp</th>
+                                            <th>Tags</th>
+                                            <th>Level</th>
+                                        </thead>
+                                        <tr class="{{service.serviceName}}-row" 
+                                            ng-repeat="service in services.external" 
+                                            data-ng-class="{'service-down': service.status == 'ERR', 
+                                                            'service-warn': service.status == 'WARN'}">
+                                            <td><input type="checkbox" ng-disabled="!service.modify" ng-model="service.requestLogging" ng-true-value="'true'" ng-false-value="'false'"></td>
+                                            <td><input type="checkbox" ng-disabled="!service.modify" ng-model="service.logger_config.type"></td>
+                                            <td><input type="checkbox" ng-disabled="!service.modify" ng-model="service.logger_config.tracing"></td>
+                                            <td><input type="checkbox" ng-disabled="!service.modify" ng-model="service.logger_config.timestamp"></td>
+                                            <td><input type="checkbox" ng-disabled="!service.modify" ng-model="service.logger_config.tags"></td>
+                                            <td><select ng-disabled="!service.modify" ng-model="service.logger_config.level" ng-options="v.num as v.text for v in logging_levels">
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                            
+                            <!-- LOGS STORAGE -->
+                            <div class='column logs-storage'>
+                                <div class="card card-default">
+                                    <div class="card-header"><h4>Logs Storage</h4></div>
+                                    <table class="table table-hover table-borderless">
+                                        <thead>
+                                            <th>Level</th>
+                                        </thead>
+                                        <tr class="{{service.serviceName}}-row" 
+                                            ng-repeat="service in services.external" 
+                                            data-ng-class="{'service-down': service.status == 'ERR', 
+                                                            'service-warn': service.status == 'WARN'}">
+                                            <td>
+                                                <select style="width: 80%;"
+                                                        ng-disabled="!service.modify || !service.logger_config.storage"
+                                                         ng-model="service.logger_config.storage.level" 
+                                                        ng-options="v.num as v.text for v in logging_levels">
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+            
+                    <!-- INTERNAL SERVICES PANEL -->
+                    <div class = 'card card-default service-panel'>
+                        <div class="card-header clickable" ng-click="toggle_collapse($event)" style="grid-column: 1 / span 4;"><h4>Internal services</h4></div>
+                        <div class='sub-panel-container'>
+            
+                            <!-- ACTIONS -->
+                            <div class='column actions'>
+                                <div class="card card-default">
+                                    <div class="card-header"><h4>Actions</h4></div>						
+                                    <table class="table table-hover table-borderless">
+                                        <thead>
+                                            <th></th>
+                                            <th></th>
+                                        </thead>
+                                        <tr ng-repeat="service in services.internal" 
+                                            class = "{{service.serviceName}}-row button-tr" 
+                                            data-ng-class="{'service-down': service.status == 'ERR', 
+                                                            'service-warn': service.status == 'WARN'}">
+                                            <td>
+                                                <button ng-if="!service.modify" 
+                                                        ng-disabled="editing || service.status != 'FINE'" 
+                                                        ng-click="update_infrastructure(service)"
+                                                        data-bs-toggle="tooltip" 
+                                                        data-bs-original-title="Update infrastructure">
+                                                    <i class="fas fa-sync-alt" aria-hidden="true"/>
+                                                </button>
+                                                <button ng-if="service.modify" 
+                                                        ng-click="accept_edit(service)" 
+                                                        id = "{{service.serviceName}}-confirm">
+                                                    <i class="fas fa-check" aria-hidden="true"/>
+                                                </button>
+                                            </td>
+                                            <td>
+                                                <button ng-if="!service.modify" 
+                                                        ng-disabled="editing || service.status != 'FINE'" 
+                                                        ng-click="toggle_edit(service)"
+                                                        data-bs-toggle="tooltip" 
+                                                        data-bs-original-title="Modify params">
+                                                    <i class="fas fa-edit" aria-hidden="true"/>
+                                                </button>
+                                                <button ng-if="service.modify" 
+                                                        ng-click="cancel_edit(service)" 
+                                                        id = "{{service.serviceName}}-cancel">
+                                                    <i class="fas fa-times" aria-hidden="true"/>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+            
+                            <!-- SERVICE INFO-->
+                            <div class='column service-info'>
+                                <div class="card card-default">
+                                    <div class="card-header"><h4>Service Info</h4></div>
+                                    <table class="table table-hover table-borderless">
+                                        <thead>
+                                            <th>Service</th>
+                                            <th>Service Version</th>
+                                            <th>Commons Version</th>
+                                        </thead>
+            
+                                        <tr class="{{service.serviceName}}-row"
+                                            ng-repeat="service in services.internal" 
+                                            data-ng-class="{'service-down': service.status == 'ERR', 
+                                                            'service-warn': service.status == 'WARN'}">
+                                            <td>
+                                                <i 	style="float: left; margin-left: 10px;"
+                                                    ng-if="service.status != 'FINE'"
+                                                    class="fas"
+                                                    data-ng-class="{'fa-exclamation-triangle' : service.status == 'WARN', 'fa-exclamation-circle' : service.status == 'ERR'}"
+                                                    data-bs-toggle="tooltip" 
+                                                    data-bs-original-title="{{service.msg}}">
+                                                </i>
+                                                <span>{{service.serviceName}}</span>
+                                            </td>
+                                            <td>{{service.serviceVersion}}</td>
+                                            <td>{{service.version}}</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+            
+                            <!-- LOGS CONFIG -->
+                            <div class='column logs-config'>
+                                <div class="card card-default">
+                                    <div class="card-header"><h4>Logs Config</h4></div>
+                                    <table class="table table-hover table-borderless">
+                                        <thead>
+                                            <th>R.Logging</th>
+                                            <th>Type</th>
+                                            <th>Tracing</th>
+                                            <th>Timestamp</th>
+                                            <th>Tags</th>
+                                            <th>Level</th>
+                                        </thead>
+                                        <tr class="{{service.serviceName}}-row"
+                                            ng-repeat="service in services.internal" 
+                                            data-ng-class="{'service-down': service.status == 'ERR', 
+                                                            'service-warn': service.status == 'WARN'}">
+                                            <td><input type="checkbox" ng-disabled="!service.modify" ng-model="service.requestLogging" ng-true-value="'true'" ng-false-value="'false'"></td>
+                                            <td><input type="checkbox" ng-disabled="!service.modify" ng-model="service.logger_config.type"></td>
+                                            <td><input type="checkbox" ng-disabled="!service.modify" ng-model="service.logger_config.tracing"></td>
+                                            <td><input type="checkbox" ng-disabled="!service.modify" ng-model="service.logger_config.timestamp"></td>
+                                            <td><input type="checkbox" ng-disabled="!service.modify" ng-model="service.logger_config.tags"></td>
+                                            <td><select ng-disabled="!service.modify" ng-model="service.logger_config.level" ng-options="v.num as v.text for v in logging_levels">
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                            
+                            <!-- LOGS STORAGE -->
+                            <div class='column logs-storage'>
+                                <div class="card card-default">
+                                    <div class="card-header"><h4>Logs Storage</h4></div>
+                                    <table class="table table-hover table-borderless">
+                                        <thead>
+                                            <th>Level</th>
+                                        </thead>
+                                        <tr class="{{service.serviceName}}-row"
+                                            ng-repeat="service in services.internal" 
+                                            data-ng-class="{'service-down': service.status == 'ERR', 
+                                                            'service-warn': service.status == 'WARN'}">
+                                            <td>
+                                                <select style="width: 80%;"
+                                                        ng-disabled="!service.modify || !service.logger_config.storage"
+                                                        ng-model="service.logger_config.storage.level" 
+                                                        ng-options="v.num as v.text for v in logging_levels">
+                                            </td>							
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
 </body>
-</html>

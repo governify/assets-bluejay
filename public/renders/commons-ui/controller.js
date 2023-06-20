@@ -42,9 +42,9 @@ async function create_task(taskId, script){
             script: script,
             running: false,
             config: {},
-            init: "2021-01-01T00:00:00",
+            init: "2023-02-09T00:00:00",
             interval: 10000000000,
-            end: "2022-01-01T00:00:00"
+            end: "2023-07-18T23:59:59"
         }
     }).catch(err => {
         console.log("Error on task creation: " + err.status);

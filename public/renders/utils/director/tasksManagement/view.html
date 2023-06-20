@@ -1,4 +1,37 @@
 <style>
+    body {
+		background: url("$_[infrastructure.external.assets.default]/api/v1/public/renders/index/images/blue_mountains_1.jpg") !important;
+		background-size: auto !important;
+		background-attachment: fixed !important;
+        font-family: 'Didact Gothic', sans-serif;
+        max-width: 100vw !important;
+        
+	}
+    .bodyContainer{
+        display: grid;
+        grid-template-columns: 0.5fr 3fr 0.5fr;
+        grid-column-gap: 10px;
+        height: 100%;
+        padding: 50px;
+        min-width: 1750px;
+    }
+    .wrapper{
+        background-color: #ffffff;
+    }
+    .title {
+        text-align: center;
+		margin-bottom: 3em;
+	}
+
+	.title h2 {
+		font-size: 2.7em;
+        font-weight: bold;
+	}
+
+	.title .byline {
+		font-size: 1.3em;
+		color: rgb(76,76,76,0.64);
+	}
     textarea {
         height: 75px !important;
     }
@@ -26,123 +59,147 @@
         padding:0;
         cursor: pointer;
     }
+    .table-responsive{
+        overflow-x: unset;
+        margin-bottom: 50px;
+    }
 </style>
-
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link href="https://fonts.googleapis.com/css?family=Didact+Gothic" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
-
 <body>
-    <ul class="nav nav-tabs">
-        <li role="presentation" class="active">
-            <a href="#">Tasks Managenement</a>
-        </li>
-        <li role="presentation">
-            <a href="./render?model=$_[infrastructure.internal.assets.default]/api/v1/public/renders/utils/director/tasksTesting/model.json&view=$_[infrastructure.internal.assets.default]/api/v1/public/renders/utils/director/tasksTesting/view.html&ctrl=$_[infrastructure.internal.assets.default]/api/v1/public/renders/utils/director/tasksTesting/controller.js">Tasks testing</a>
-        </li>
-    </ul>
+    <main class="bodyContainer">
+        <div></div>
+        <div class="wrapper">
+            <a href="$_[infrastructure.external.render.default]"
+					class="btn btn-primary btn-sm" style="margin: 10px;">
+					Main page
+			</a>
+            <div class="title" style="padding: 30px 0 20px; margin: 0">
+                <h2>Panel de administración</h2>
+                <span class="byline">Creacion y listado de tareas programadas</span>
+            </div>
+            <ul class="nav nav-tabs">
+                <li class="nav-item">
+                  <a class="nav-link"  href="./render?model=$_[infrastructure.internal.assets.default]/api/v1/public/renders/utils/database/model.json&view=$_[infrastructure.internal.assets.default]/api/v1/public/renders/utils/database/view.html&ctrl=$_[infrastructure.internal.assets.default]/api/v1/public/renders/utils/database/controller.js">Bases de datos</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link active" aria-current="page" href="#">Gestion de tareas</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="./render?model=$_[infrastructure.internal.assets.default]/api/v1/public/renders/utils/director/tasksTesting/model.json&view=$_[infrastructure.internal.assets.default]/api/v1/public/renders/utils/director/tasksTesting/view.html&ctrl=$_[infrastructure.internal.assets.default]/api/v1/public/renders/utils/director/tasksTesting/controller.js">Prueba de tareas</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link " href="./render?model=$_[infrastructure.internal.assets.default]/api/v1/public/renders/commons-ui/model.json&view=$_[infrastructure.internal.assets.default]/api/v1/public/renders/commons-ui/view.html&ctrl=$_[infrastructure.internal.assets.default]/api/v1/public/renders/commons-ui/controller.js" >Commons</a>
+                </li>
+            </ul>
+            <div style="padding: 20px;">
+                <h2 style="margin-top:40px;">Create Task</h2>
+                <div class="table-responsive">
+                    <div ng-if="displayMessage">
+                        <div ng-if="message === 'ok'">
+                            <div class="alert alert-success" role="alert"><strong>{{responseCode}}</strong> {{taskCreationResponse}}</div>
+                        </div>
+                        <div ng-if="message === 'badRequest'">
+                            <div class="alert alert-danger" role="alert"><strong>{{responseCode}}</strong> {{taskCreationResponse}}</div>
+                        </div>
+                        <div ng-if="message === 'badFields'">
+                            <div class="alert alert-danger" role="alert">{{taskCreationResponse}}</div>
+                        </div>
+                    </div>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Id</th>
+                                <th>Running</th>
+                                <th>Init</th>
+                                <th>Interval</th>
+                                <th>End</th>
+                                <th>Script</th>
+                                <th>Configuration</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                                <tr>
+                                    <td><textarea ng-model="taskId" type="text" class="form-control" placeholder="12345" style="width: 75px"></textarea></td>
+                                    <td><input ng-model="taskRunning" type="checkbox"></td>
+                                    <td ><input ng-model="taskInit" type="datetime-local" class="form-control" placeholder="24/06/2022T00:00:00" style="width: 190px"></td>
+                                    <td><input ng-model="taskInterval" type="number" class="form-control" placeholder="5000"></td>
+                                    <td><input ng-model="taskEnd" type="datetime-local" class="form-control" placeholder="24/08/2022T00:00:00" style="width: 190px"></td>
+                                    <td><textarea ng-model="taskScript" type="text" class="form-control" style="width: 175px"></textarea></td>
+                                    <td><textarea ng-model="taskConfiguration" type="text" class="form-control" style="width: 175px"></textarea></td>
+                                    <td><button ng-click="createTask()" class="btn btn-primary">Create</button></td>
+                                </tr>
+                        </tbody>
+                    </table>
+                </div>
 
-    <h2 style="margin-top:40px;">Create Task</h2>
-    <div class="table-responsive">
-        <div ng-if="displayMessage">
-            <div ng-if="message === 'ok'">
-                <div class="alert alert-success" role="alert"><strong>{{responseCode}}</strong> {{taskCreationResponse}}</div>
-            </div>
-            <div ng-if="message === 'badRequest'">
-                <div class="alert alert-danger" role="alert"><strong>{{responseCode}}</strong> {{taskCreationResponse}}</div>
-            </div>
-            <div ng-if="message === 'badFields'">
-                <div class="alert alert-danger" role="alert">{{taskCreationResponse}}</div>
+                <h2>Director Tasks</h2>
+                <div class="table-responsive" style="margin-top:15px;">
+                    <table class="table table-striped table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Id
+                                    <button ng-click="sortTasks('id')" class="astext sortButton">
+                                        <p>⬆</p>
+                                    </button>
+                                    <button ng-click="sortTasksReverse('id')" class="astext sortButton">
+                                        <p>⬇</p>
+                                    </button>
+                                </th>
+                                <th>Initial
+                                    <button ng-click="sortTasks('init')" class="astext sortButton">
+                                        <p>⬆</p>
+                                    </button>
+                                    <button ng-click="sortTasksReverse('init')" class="astext sortButton">
+                                        <p>⬇</p>
+                                    </button>
+                                </th>
+                                <th>Interval</th>
+                                <th>End
+                                    <button ng-click="sortTasks('end')" class="astext sortButton">
+                                        <p>⬆</p>
+                                    </button>
+                                    <button ng-click="sortTasksReverse('end')" class="astext sortButton">
+                                        <p>⬇</p>
+                                    </button>
+                                </th>
+                                <th>Script</th>
+                                <th>Configuration
+                                    <button ng-click="sortTasks('configuration')" class="astext sortButton">
+                                        <p>⬆</p>
+                                    </button>
+                                    <button ng-click="sortTasksReverse('configuration')" class="astext sortButton">
+                                        <p>⬇</p>
+                                    </button>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                                <tr ng-repeat="task in tasks">
+                                    <td style="width: 75px">{{task.id}}</td>
+                                    <td>{{task.init}}</td>
+                                    <td>{{task.interval}}</td>
+                                    <td>{{task.end}}</td>
+                                    <td><textarea style="width: 175px;" readonly>{{task.script}}</textarea></td>
+                                    <td><textarea style="width: 150px;" readonly>{{task.configuration}}</textarea></td>
+                                    <td>
+                                        <div ng-if="task.running">
+                                            <img src = "$_[infrastructure.external.assets.default]/api/v1/public/renders/utils/director/tasksManagement/images/running.svg"/>
+                                        </div>
+                                        <div ng-if="!task.running">
+                                            <img src = "$_[infrastructure.external.assets.default]/api/v1/public/renders/utils/director/tasksManagement/images/stopped.svg"/>
+                                        </div>
+                                    </td>
+                                    <td><button ng-click="changeStatus(task)" class="btn btn-primary">Start/Stop</button></td>
+                                    <td><button ng-click="deleteTask(task)" class="btn btn-danger">Delete</button></td>
+                                </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Id</th>
-                    <th>Running</th>
-                    <th>Init</th>
-                    <th>Interval</th>
-                    <th>End</th>
-                    <th>Script</th>
-                    <th>Configuration</th>
-                </tr>
-            </thead>
-            <tbody>
-                    <tr>
-                        <td><textarea ng-model="taskId" type="text" class="form-control" placeholder="12345" style="width: 75px"></textarea></td>
-                        <td><input ng-model="taskRunning" type="checkbox"></td>
-                        <td ><input ng-model="taskInit" type="datetime-local" class="form-control" placeholder="24/06/2022T00:00:00" style="width: 190px"></td>
-                        <td><input ng-model="taskInterval" type="number" class="form-control" placeholder="5000"></td>
-                        <td><input ng-model="taskEnd" type="datetime-local" class="form-control" placeholder="24/08/2022T00:00:00" style="width: 190px"></td>
-                        <td><textarea ng-model="taskScript" type="text" class="form-control" style="width: 175px"></textarea></td>
-                        <td><textarea ng-model="taskConfiguration" type="text" class="form-control" style="width: 175px"></textarea></td>
-                        <td><button ng-click="createTask()" class="btn btn-primary">Create</button></td>
-                    </tr>
-            </tbody>
-        </table>
-    </div>
-
-    <h2>Director Tasks</h2>
-    <div class="table-responsive" style="margin-top:15px;">
-        <table class="table table-striped table-bordered">
-            <thead>
-                <tr>
-                    <th>Id
-                        <button ng-click="sortTasks('id')" class="astext sortButton">
-                            <p>⬆</p>
-                        </button>
-                        <button ng-click="sortTasksReverse('id')" class="astext sortButton">
-                            <p>⬇</p>
-                        </button>
-                    </th>
-                    <th>Initial
-                        <button ng-click="sortTasks('init')" class="astext sortButton">
-                            <p>⬆</p>
-                        </button>
-                        <button ng-click="sortTasksReverse('init')" class="astext sortButton">
-                            <p>⬇</p>
-                        </button>
-                    </th>
-                    <th>Interval</th>
-                    <th>End
-                        <button ng-click="sortTasks('end')" class="astext sortButton">
-                            <p>⬆</p>
-                        </button>
-                        <button ng-click="sortTasksReverse('end')" class="astext sortButton">
-                            <p>⬇</p>
-                        </button>
-                    </th>
-                    <th>Script</th>
-                    <th>Configuration
-                        <button ng-click="sortTasks('configuration')" class="astext sortButton">
-                            <p>⬆</p>
-                        </button>
-                        <button ng-click="sortTasksReverse('configuration')" class="astext sortButton">
-                            <p>⬇</p>
-                        </button>
-                    </th>
-                </tr>
-            </thead>
-            <tbody>
-                    <tr ng-repeat="task in tasks">
-                        <td style="width: 75px">{{task.id}}</td>
-                        <td>{{task.init}}</td>
-                        <td>{{task.interval}}</td>
-                        <td>{{task.end}}</td>
-                        <td><textarea style="width: 175px;" readonly>{{task.script}}</textarea></td>
-                        <td><textarea style="width: 150px;" readonly>{{task.configuration}}</textarea></td>
-                        <td>
-                            <div ng-if="task.running">
-                                <img src = "$_[infrastructure.external.assets.default]/api/v1/public/renders/utils/director/tasksManagement/images/running.svg"/>
-                            </div>
-                            <div ng-if="!task.running">
-                                <img src = "$_[infrastructure.external.assets.default]/api/v1/public/renders/utils/director/tasksManagement/images/stopped.svg"/>
-                            </div>
-                        </td>
-                        <td><button ng-click="changeStatus(task)" class="btn btn-primary">Start/Stop</button></td>
-                        <td><button ng-click="deleteTask(task)" class="btn btn-danger">Delete</button></td>
-                    </tr>
-            </tbody>
-        </table>
-    </div>
+    </main>
 </body>

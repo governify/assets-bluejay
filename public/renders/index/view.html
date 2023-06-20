@@ -18,10 +18,11 @@ Released   : 20140228
 	<meta name="keywords" content="" />
 	<meta name="description" content="" />
 	<link href="https://fonts.googleapis.com/css?family=Didact+Gothic" rel="stylesheet" />
-	<link href="$_[infrastructure.external.assets.default]/api/v1/public/renders/index/default.css" rel="stylesheet" type="text/css"
-		media="all" />
-	<link href="$_[infrastructure.external.assets.default]/api/v1/public/renders/index/fonts.css" rel="stylesheet" type="text/css"
-		media="all" />
+	<link href="$_[infrastructure.external.assets.default]/api/v1/public/renders/index/default.css" rel="stylesheet"
+		type="text/css" media="all" />
+	<link href="$_[infrastructure.external.assets.default]/api/v1/public/renders/index/fonts.css" rel="stylesheet"
+		type="text/css" media="all" />
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
 
 <style>
@@ -30,35 +31,119 @@ Released   : 20140228
 		background-size: auto !important;
 		background-attachment: fixed !important;
 	}
+
+
+	.notification-switch-box {
+		display: flex;
+		font-weight: bold;
+		align-items: center;
+		border-radius: 5px;
+		user-select: none;
+		
+	}
+	.notification-switch-box input{
+		cursor: pointer;
+	}
+
+	.row2 {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+	}
+
+	.hide *{
+		opacity: 0;
+		pointer-events: none;
+	}
+
+	.notification-box {
+		background-color: #00000009;
+		border-radius: 0.5rem;
+		padding: 0.5rem 1rem;
+		gap: 1rem;
+
+	}
+
+	/* show all borders, nice when things arent working */
+	/* * {
+		border: 1px solid rgb(199, 43, 43);
+	} */
 </style>
 
 <body>
-	<div id="wrapper" style="padding: 0 0 40px 0; margin: 5vh 0; min-height: 90vh;">
+	<div id="wrapper" style="padding: 10px; margin: 5vh 0; min-height: 90vh;">
 		<div id="three-column" class="container" style="margin: 0; padding: 0; width: 100%;">
 
 			<!-- ---------------- Buttons ---------------- -->
-			<!-- Left -->
-			<span class="col-xs-offset-9" style="position:absolute; top:10px; left:10px; margin:0">
-				<button class="btn btn-info btn-sm" ng-click="editDefaultTPA()" disabled style="color: white;">
-					Edit default TPA
-				</button>
-				<a href="./render?model=$_[infrastructure.internal.assets.default]/api/v1/public/renders/index/model.json&view=$_[infrastructure.internal.assets.default]/api/v1/public/renders/index/adminview.html&ctrl=$_[infrastructure.internal.assets.default]/api/v1/public/renders/index/admincontroller.js"
-					class="btn btn-primary btn-sm disabled">
-					Admin UI
-				</a>
-			</span>
 
-			<!-- Right -->
-			<span class="col-xs-offset-9" style="position:absolute; top:10px; right:10px; margin:0;">
-				<a href="" target="_blank" class="btn btn-success btn-sm disabled">
-					General Dashboard
-				</a>
-				<a href="https://github.com/isa-group/governify-examples/tree/master/metrics/event-collector"
-					target="_blank" class="btn btn-primary btn-sm">
-					Metrics library
-				</a>
-			</span>
+			<div class="row2" style=" justify-content: space-between;">
 
+				<div class="row2 notification-box">
+					<b>Admin Notifications:</b>
+					<!-- set admin webhook -->
+					<div class="input-group input-group-sm" style="width:auto">
+						<input type="text" class="form-control" value="{{slackWebHook}}" placeholder="Admin webhook"
+							aria-label="Configure admin webhook" aria-describedby="button-addon2">
+						<button class="btn btn-primary btn-sm" type="button" id="button-addon2"
+							ng-click="setAdminWebhook($event)">Set</button>
+					</div>
+					<!-- set time for admin notifications -->
+					<div class="input-group input-group-sm" style="width:auto">
+						<select class="form-control" >
+							<option value="8" ng-if="isDevelopEnviroment" ng-selected="adminNotificationsInterval == 8">Continuously</option>
+							<option value="3600" ng-selected="adminNotificationsInterval == 3600">Hourly</option>
+							<option value="86400" ng-selected="adminNotificationsInterval == 86400">Daily</option>
+							<option value="604800" ng-selected="adminNotificationsInterval == 604800">Weekly</option>
+						</select>
+						<button class="btn btn-primary btn-sm" type="button" ng-click="setSlackInterval($event,true)">
+							Set
+						</button>
+					</div>
+					<!-- Admin notifications switch-->
+					<div ng-if="!(tpaprojectskeys.length == 0 || tpaprojectskeys[0] == null)" class="row2 tooltipbottom" ng-click="toggleAllSlack($event,true)" type="button" style="gap:0; border:1px solid #ced4da; border-radius: 1rem;">
+						<div class="btn-sm" ng-if="!allAdminNotifications" style="background-color: #ced4da; padding:2 4 2 2; margin:2 4 2 2; border-radius: 1rem; width: 2rem; justify-content: center;">
+							OFF
+						</div>
+						<img style="width: 20px;margin: 0 10 0 10;" src="$_[infrastructure.external.assets.default]/api/v1/public/renders/index/images/slack_icon_2019.svg" alt="SVG Image">
+						<div class="btn-sm" ng-if="allAdminNotifications" style="background-color: #0D6EFD; padding:2; margin:2; border-radius: 1rem; width: 2rem; justify-content: center;color:white">
+							ON
+						</div>
+						<span class="tooltipbottomtext">
+							<li><b>Hook channel:</b> {{slackAdm}}</li>
+							<li><b>Message interval:</b>
+								{{adminNotificationsInterval==604800?"Weekly":adminNotificationsInterval==86400?"Daily":adminNotificationsInterval==3600?"Hourly":adminNotificationsInterval==8?"Continuously (8 seconds)":"Uknown"}} </li>
+						</span>
+					</div>
+
+					<!-- <div class="notification-switch-box tooltipbottom">
+						Off
+						<div class="form-switch" style="pointer-events:all; margin-top: -2px;">
+							<input class="form-check-input" type="checkbox" ng-checked="allAdminNotifications"
+								ng-click="toggleAllSlack($event,true)">
+						</div>
+						On
+						<span class="tooltipbottomtext">
+							<li><b>Hook channel:</b> {{slackAdm}}</li>
+							<li><b>Message interval:</b>
+								{{adminNotificationsInterval==604800?"Weekly":adminNotificationsInterval==86400?"Daily":adminNotificationsInterval==3600?"Hourly":"Uknown"}} </li>
+						</span>
+					</div> -->
+				</div>
+
+				<div class="row2">
+					<a href="./render?model=$_[infrastructure.internal.assets.default]/api/v1/public/renders/commons-ui/model.json&view=$_[infrastructure.internal.assets.default]/api/v1/public/renders/commons-ui/view.html&ctrl=$_[infrastructure.internal.assets.default]/api/v1/public/renders/commons-ui/controller.js"
+						class="btn btn-primary btn-sm"
+						style="display:flex; align-items: center; justify-content: center;">
+						Admin UI
+					</a>
+					<a href="https://github.com/isa-group/governify-examples/tree/master/metrics/event-collector"
+						target="_blank" class="btn btn-primary btn-sm">
+						Metrics library
+					</a>
+
+				</div>
+
+			</div>
 			<!-- ---------------- Top Bluejay Hero ---------------- -->
 			<div class="title" style="padding: 55px 0; margin: 0; display:flex; justify-content: center;">
 				<div onclick='location.href="/"' style="cursor: pointer;">
@@ -70,22 +155,22 @@ Released   : 20140228
 
 			<!-- ---------------- Alerts (FIXED to top) ---------------- -->
 			<div ng-if="displayItems.statusType !== undefined"
-				class="alert alert-dismissible fade show {{displayItems.statusType === 'error' ? 'alert-danger' : 'alert-success'}}"
-				role="alert" style="position: absolute; width: 100%; z-index: 1;top: 150px;">
+				class="alert alert-dismissible fade show {{displayItems.statusType === 'error' ? 'alert-danger' : displayItems.statusType === 'warning'?'alert-warning' : 'alert-success'}}"
+				role="alert" style="position: absolute; width: 100%; z-index: 1;top: 192px; margin-left: -10px;">
 				<button type="button" class="btn-close" aria-label="Close"
-					ng-click="displayItems.statusType = undefined"><span
-						aria-hidden="true"></button>
-				<span style="font-weight: bold;">{{displayItems.statusType === 'error' ? 'Error!' : 'Success!'}}</span>
+					ng-click="displayItems.statusType = undefined"><span aria-hidden="true"></button>
+				<span style="font-weight: bold;">{{displayItems.statusType === 'error' ? 'Error!' : displayItems.statusType === 'warning'?'Warning!' : 'Success!'}}</span>
 				{{displayItems.statusMessage}}
 			</div>
 
 			<!-- ---------------- Courses selection and projects ---------------- -->
 			<div style="padding: 15px 0 50px 0">
 				<!-- Course picker -->
-				<div ng-if="displayItems.loadedCourses" style="margin-bottom: 40px!important; padding: 0 100px; justify-content: space-between;"
-				class = "row mb-3">
+				<div ng-if="displayItems.loadedCourses"
+					style="margin-bottom: 40px!important; padding: 0 100px; justify-content: space-between;"
+					class="row mb-3">
 					<label style="font-weight: bold;" class="col-auto col-form-label col-form-label-sm">Course</label>
-					<div class="col-sm-10" style = "width: 79%;">
+					<div class="col-sm-10" style="width: 79%;">
 						<select ng-model="displayItems.course" class="form-select form-select-sm" id="metricType">
 							<option ng-repeat="course in developmentScopeJSON">{{course.classId}}</option>
 						</select>
@@ -112,33 +197,100 @@ Released   : 20140228
 				<!-- Projects -->
 				<div class="row" ng-if="finishloading" style="width: 100%; margin: 0; justify-content: center;">
 					<!-- Audited Projects -->
-					<div class="col-sm-5 col-sm-offset-1" style="padding: 0px;">
+					<div class="col-sm-6 " style="padding: 0px;">
 						<div class="well" style="margin-right: 10px">
 							<h3 style="padding-bottom: 20px;">Audited projects</h3>
-							<ul>
+							<!-- Students notification managment -->
+							<div class="notification-box" style="margin-left: -0.5rem; margin-right: -0.5rem; padding: 0.5rem 0.5rem;" ng-if="!(tpaprojectskeys.length == 0 || tpaprojectskeys[0] == null)">
+
+								<div class="row2" style="justify-content: space-between;" >
+									<b>Students Notifications:</b>
+
+									<div class="row2">
+										<!-- set time for student notifications -->
+										<div class="input-group input-group-sm" style="width:auto">
+											<select class="form-control" >
+											  <option value="8" ng-if="isDevelopEnviroment" ng-selected="studentNotificationsInterval == 8">Continuously</option>
+											  <option value="3600" ng-selected="studentNotificationsInterval == 3600">Hourly</option>
+											  <option value="86400" ng-selected="studentNotificationsInterval == 86400">Daily</option>
+											  <option value="604800" ng-selected="studentNotificationsInterval == 604800">Weekly</option>
+											</select>
+											<button class="btn btn-primary btn-sm" type="button" id="button-addon2" ng-click="setSlackInterval($event,false)">
+												Set
+											</button>
+										</div>
+										<!-- All students notifications switch-->
+										<div class="notification-switch-box tooltipbottom">
+											Off
+											<div class="form-switch" style="pointer-events:all; margin-top: -2px;">
+												<input class="form-check-input" type="checkbox"
+													ng-checked="allStudentNotifications"
+													ng-click="toggleAllSlack($event,false)">
+											</div>
+											On
+											<span class="tooltipbottomtext">
+												<li><b>Message interval:</b>
+													{{studentNotificationsInterval==604800?"Weekly":studentNotificationsInterval==86400?"Daily":studentNotificationsInterval==3600?"Hourly":studentNotificationsInterval==8?"Continuously (8 seconds)":"Uknown"}}</li>
+											</span>
+										</div>
+									</div>
+								</div>
+							</div>
+							<br>
+
 								<div ng-repeat="projectOwner in tpaprojectskeys" style="padding: 0; text-align: left;">
 									<span style="font-weight: bold;">{{projectOwner}}</span>
-									<li ng-repeat="project in tpaprojects[projectOwner] track by project.projectId"
-										style="padding: 0.5em; text-align: left;">
-										{{project.name ? project.name : project.projectId}}
-										<a target="_blank"
-											href="$_[infrastructure.external.dashboard.default]/dashboard/script/dashboardLoader.js?dashboardURL=$_[infrastructure.external.reporter.default]/api/v4/dashboards/{{project.registryagreement.id}}/main"
-											class="btn btn-sm btn-success"
-											style="margin-left: 0.5em; padding: 0 5px; float: right;">
-											Dashboard
-										</a>
-										<a href="./render?model=$_[infrastructure.internal.registry.default]/api/v6/agreements/tpa-{{project.projectId}}&view=$_[infrastructure.internal.assets.default]/api/v1/public/renders/tpa/default.html&ctrl=$_[infrastructure.internal.assets.default]/api/v1/public/renders/tpa/default.js"
-											target="_blank" class="btn btn-sm btn-info"
-											style="margin-left: 0.5em;padding: 0 5px; float: right;">TPA</a>
-									</li>
+									<div
+										ng-repeat="project in tpaprojects[projectOwner] track by project.projectId">
+										<div class="row2" style="gap:0; justify-content: space-between; padding-left: 3px; margin: 0 0 1rem 0;">
+											<!-- Project Name -->
+											<div class="tooltipbottom" style="overflow: hidden;">
+												{{project.name ? project.name : project.projectId}}
+											</div>
+
+											<!-- buttons in project -->
+											<div class="row2" style="gap:0;">
+
+												<!-- admin notification reference -->
+												<div class="row2 {{project.toggleAdmSlack?'':'hide'}}" style="margin-left: 0.5em;gap:0.1rem">
+													<div>Admin</div>
+													<img style="width: 20px;" src="$_[infrastructure.external.assets.default]/api/v1/public/renders/index/images/slack_icon_2019.svg" alt="SVG Image">
+												</div>
+												<a target="_blank"
+												href="$_[infrastructure.external.dashboard.default]/dashboard/script/dashboardLoader.js?dashboardURL=$_[infrastructure.external.reporter.default]/api/v4/dashboards/{{project.registryagreement.id}}/main"
+												class="btn btn-sm btn-success"
+												style="margin-left: 0.5em; padding: 0 5px;">
+												Dashboard
+												</a>
+												<a href="./render?model=$_[infrastructure.internal.registry.default]/api/v6/agreements/tpa-{{project.projectId}}&view=$_[infrastructure.internal.assets.default]/api/v1/public/renders/tpa/default.html&ctrl=$_[infrastructure.internal.assets.default]/api/v1/public/renders/tpa/default.js"
+												target="_blank" class="btn btn-sm btn-info"
+												style="margin-left: 0.5em;padding: 0 5px;">TPA</a>
+												<!-- student notification switch-->
+												<div class="notification-switch-box tooltipbottom {{project.notifications.slack?'':'hide'}}"  style="margin-left:0.5em;">
+													<b>Off</b>
+													<div class="form-check form-switch" style="pointer-events:all;min-height: auto; display: flex; justify-content: center; ">
+														<input class="form-check-input" type="checkbox"  ng-checked="project.toggleSlack" ng-click="toggleSlackbot(project,false)">
+													</div>
+													<b>On</b>
+													<span class="tooltipbottomtext">
+														<li><b>Hook channel:</b>
+															{{project.notifications.slack}}</li>
+													</span>
+												</div>
+											</div>
+									</div>
+										
+
+									</div>
 								</div>
-								<li ng-if="tpaprojectskeys.length == 0 || tpaprojectskeys[0] == null"><span style="font-weight: bold;">There are
-										no audited projects for this course yet.</span></li>
-							</ul>
+								<div ng-if="tpaprojectskeys.length == 0 || tpaprojectskeys[0] == null"><span
+										style="font-weight: bold;">There are
+										no audited projects for this course yet.</span></div>
+
 						</div>
 					</div>
 					<!-- Non Audited Projects -->
-					<div class="col-sm-5" style="padding: 0;">
+					<div class="col-sm-6" style="padding: 0;">
 						<div class="well" style="margin-left: 10px">
 							<h3 style="padding-bottom: 20px;">Other projects</h3>
 							<a ng-click="createAllTpas(notpaprojects);"
@@ -160,8 +312,8 @@ Released   : 20140228
 										</a>
 									</li>
 								</div>
-								<li ng-if="notpaprojectskeys.length == 0 || notpaprojectskeys[0] == null"><span style="font-weight: bold;">There
-										are no more projects to audit.</span></li>
+								<li ng-if="notpaprojectskeys.length == 0 || notpaprojectskeys[0] == null"><span
+										style="font-weight: bold;">There are no more projects to audit.</span></li>
 							</ul>
 						</div>
 					</div>
@@ -170,7 +322,8 @@ Released   : 20140228
 		</div>
 		<!-- Swap show hidden & Version -->
 		<div style="position: absolute; bottom: 10px; left:10px; color: blue;">
-			<a href="" style="color: blue; text-decoration: none;" ng-click="swapShowHidden();" >{{displayItems.showHidden ? 'Hide' : 'Show hidden'}}  projects.</a>
+			<a href="" style="color: blue; text-decoration: none;"
+				ng-click="swapShowHidden();">{{displayItems.showHidden ? 'Hide' : 'Show hidden'}} projects.</a>
 		</div>
 		<div id="version" style="position: absolute; bottom: 10px; right:10px; color:black">
 			{{model.version}}

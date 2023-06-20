@@ -17,18 +17,18 @@ const setPageAlert = (message, type) => {
 //Calculate Metrics button modal
 $scope.dateNowISO = new Date().toISOString().match(/\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d/g)[0];
 $scope.calculateMetrics = {
-    "timezone": "GMT-8:00",
+    "timezone": "GMT+1:00",
     "timezones": [],
-    "from": new Date(Date.parse("2021-01-18T00:00:00")),
-    "to": new Date(Date.parse("2021-03-01T23:59:59")),
+    "from": new Date(Date.parse("2023-02-09T00:00:00")),
+    "to": new Date(Date.parse("2023-07-18T23:59:59")),
     "agree": false,
     "message": "",
     "error": false
 }
 
 const defaultDirectorRunTime = {
-    "init": "2021-01-01T00:00:00",
-    "end": "2021-04-01T00:00:00",
+    "init": "2023-02-09T00:00:00", 
+    "end": "2023-07-18T23:59:59",
     "interval": 7200000
 }
 
@@ -66,8 +66,8 @@ $scope.swapAutomaticComputation = () => {
                         "config": {
                             "agreementId": $scope.model.id
                         },
-                        "init": data ? data.init : "2021-01-01T00:00:00",
-                        "end": data ? data.end : "2021-04-01T00:00:00",
+                        "init": data ? data.init : "2023-02-09T00:00:00",
+                        "end": data ? data.end : "2023-07-18T23:59:59",
                         "interval": data ? data.interval : 7200000
                     }
                     postUrl("$_[infrastructure.external.director.default]/api/v1/tasks", task, (err, data) => {

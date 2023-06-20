@@ -1,0 +1,186 @@
+<style>
+    body {
+		background: url("$_[infrastructure.external.assets.default]/api/v1/public/renders/index/images/blue_mountains_1.jpg") !important;
+		background-size: auto !important;
+		background-attachment: fixed !important;
+        font-family: 'Didact Gothic', sans-serif;
+        max-width: 100vw !important;
+        
+	}
+    .bodyContainer{
+        display: grid;
+        grid-template-columns: 0.5fr 3fr 0.5fr;
+        grid-column-gap: 10px;
+        height: 100%;
+        padding: 50px;
+        min-width: 1750px;
+    }
+    .wrapper{
+        background-color: #ffffff;
+    }
+    .title {
+        text-align: center;
+		margin-bottom: 3em;
+	}
+
+	.title h2 {
+		font-size: 2.7em;
+        font-weight: bold;
+	}
+
+	.byline {
+		font-size: 1.3em;
+		color: rgb(76,76,76,0.64);
+	}
+    .table-container{
+        padding: 100px 40px 50px;
+        
+    }
+    #backupAlert{
+        margin: auto;
+        width: 60%;
+        justify-content: space-between;
+    }
+    .modal-footer{
+        justify-content: space-between;
+    }
+</style>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link href="https://fonts.googleapis.com/css?family=Didact+Gothic" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+<body>
+    <main class="bodyContainer">
+        <div></div>
+        <div class="wrapper">
+            <a href="$_[infrastructure.external.render.default]"
+					class="btn btn-primary btn-sm" style="margin: 10px;">
+					Main page
+			</a>
+            <div class="title" style="padding: 30px 0 20px; margin: 0">
+                <h2>Panel de administración</h2>
+                <span class="byline">Restauración y guardado de bases de datos</span>
+            </div>
+            <ul class="nav nav-tabs">
+                <li class="nav-item">
+                  <a class="nav-link active" aria-current="page" href="#">Bases de datos</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="./render?model=$_[infrastructure.internal.assets.default]/api/v1/public/renders/utils/director/tasksManagement/model.json&view=$_[infrastructure.internal.assets.default]/api/v1/public/renders/utils/director/tasksManagement/view.html&ctrl=$_[infrastructure.internal.assets.default]/api/v1/public/renders/utils/director/tasksManagement/controller.js">Gestion de tareas</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="./render?model=$_[infrastructure.internal.assets.default]/api/v1/public/renders/utils/director/tasksTesting/model.json&view=$_[infrastructure.internal.assets.default]/api/v1/public/renders/utils/director/tasksTesting/view.html&ctrl=$_[infrastructure.internal.assets.default]/api/v1/public/renders/utils/director/tasksTesting/controller.js">Prueba de tareas</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link " href="./render?model=$_[infrastructure.internal.assets.default]/api/v1/public/renders/commons-ui/model.json&view=$_[infrastructure.internal.assets.default]/api/v1/public/renders/commons-ui/view.html&ctrl=$_[infrastructure.internal.assets.default]/api/v1/public/renders/commons-ui/controller.js" >Commons</a>
+                </li>
+            </ul>
+            <div class="table-container">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th scope="col">Nombre BD</th>
+                            <th scope="col">Tipo BD</th>
+                            <th scope="col" style="width: 36%;">Registros guardados</th>
+                            <th scope="col" style="width: 7%;">Backup</th>
+                            <th scope="col" style="width: 7%;">Restaurar</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat="db in databases track by $index">
+                            <td>{{db.dbName}}</th>
+                            <td>{{db.dbType}}</td>
+                            <td>Ultima version: {{db.records[0].name.split("_")[0]}}
+                                <div class="btn-group" style="float: right;" role="group" aria-label="Basic example">
+                                    <button type="button" class="btn btn-success" ng-click="downloadBD(db.dbName,db.records[0])" ng-disabled="{{db.records.length === 0}}"><i class="fas fa-download"></i></button>
+                                    <button type="button" class="btn btn-primary" 
+                                        data-bs-toggle="modal" data-bs-target="#registroModal" ng-click="loadRegister(db)" >
+                                        Ver registro
+                                    </button>
+                                </div>
+                            </td>
+                            <td style="text-align: center;"><button type="button" class="btn btn-success" ng-click="makeBackup(db)"><i class="fas fa-save"></i></button></td>
+                            <td style="text-align: center;"><button type="button" class="btn btn-success" ng-click="restoreBackup(db,db.records[0])" ng-disabled="{{db.records.length === 0}}"><i class="fas fa-sync"></i></button></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <!-- LOADER -->
+                <div ng-if="processOngoing.loading"
+                    style="position:absolute;display: flex;left: 0;top: 0;bottom: 0;right: 0;z-index: 999;background-color: rgba(0,0,0,0.40);align-items: center;justify-content: center;">
+                    <div style="
+                        padding: 30px;
+                        background-color: rgb(189 189 189 / 75%);
+                        border-radius: 12px;
+                        ">
+                        <img src="./utils/img/loading1_big_lgbg.gif" style="height: 100px;" />
+                        <span style="font-size: 25px; margin-top: 10px" class="col-sm-12">
+                            {{processOngoing.text}}...
+                        </span>
+                    </div>
+                </div>
+                <!-- backups records Modal -->
+                <div class="modal fade" id="registroModal" tabindex="-1" aria-labelledby="registroModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                        <h5 class="modal-title" id="registroModalLabel">Backups {{dbSelected.dbName}}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body" style="display: flex; justify-content: center;">
+                            <div ng-if="dbSelected.records.length === 0" style="flex: 1 1 100%;">
+                                <span class="byline">Sin registros</span>
+                            </div>
+                            <ul class="list-group" style="width: 80%;">
+                                <li class="list-group-item" style="display: flex; justify-content: space-between;" ng-repeat="r in dbSelected.records track by $index">
+                                    <div style="width: 70%;" ng-if="$index === 0"> 
+                                        <span class="badge bg-secondary">Ultima Version</span> 
+                                        <span style="margin-left: 3%;" style="font-weight: bold;">{{r.name.split("_")[0]}}</span>
+                                    </div>
+                                    <div style="width: 70%;" ng-if="$index != 0"> 
+                                        <span style="margin-left: 42%;" style="font-weight: bold;">{{r.name.split("_")[0]}}</span>
+                                    </div>
+                                    <div class="btn-group" role="group">
+                                        <button type="button" class="btn btn-success" data-bs-dismiss="modal" ng-click="downloadBD(dbSelected.dbName,r)"><i class="fas fa-download"></i></button>
+                                        <button type="button" class="btn btn-success" data-bs-dismiss="modal" ng-click="restoreBackup(dbSelected,r)" ><i class="fas fa-sync"></i></button>
+                                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal" ng-click="deleteElement(dbSelected.dbName,r)"><i class="fas fa-trash"></i></button>
+                                    </div>
+                                </li>
+                              </ul>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" data-bs-target="#loadBackupModal" class="btn btn-primary" data-bs-toggle="modal" data-bs-dismiss="modal">Cargar backup</button>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+                <div class="modal fade" id="loadBackupModal" aria-hidden="true" aria-labelledby="exampleModalToggleLabel2" tabindex="-1">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <form>
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="exampleModalToggleLabel2">Subir backup</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="form-group">
+                                        <label for="file">Backup: </label>
+                                        <input type="file" class="form-control-file" id="file">
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="submit" ng-click="submitFile()" class="btn btn-primary">Subir <i class="fas fa-upload"></i></button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="backupAlert" class="alert alert-dismissible fade" role="alert">
+                <div><i class="fas fa-info-circle"></i> {{alertMsg}}</div>
+                <button type="button" class="btn-close" ng-click="closeAlert('backupAlert')" aria-label="Close"></button>
+            </div>
+        </div>
+    </main>
+</body>

@@ -1,4 +1,37 @@
 <style>
+    body {
+		background: url("$_[infrastructure.external.assets.default]/api/v1/public/renders/index/images/blue_mountains_1.jpg") !important;
+		background-size: auto !important;
+		background-attachment: fixed !important;
+        font-family: 'Didact Gothic', sans-serif;
+        max-width: 100vw !important;
+        
+	}
+    .bodyContainer{
+        display: grid;
+        grid-template-columns: 0.5fr 3fr 0.5fr;
+        grid-column-gap: 10px;
+        height: 100%;
+        padding: 50px;
+        min-width: 1750px;
+    }
+    .wrapper{
+        background-color: #ffffff;
+    }
+    .title {
+        text-align: center;
+		margin-bottom: 3em;
+	}
+
+	.title h2 {
+		font-size: 2.7em;
+        font-weight: bold;
+	}
+
+	.title .byline {
+		font-size: 1.3em;
+		color: rgb(76,76,76,0.64);
+	}
     .halfTextarea{
         height: 250px !important;
     }
@@ -19,65 +52,100 @@
     }
 
     .buttonTest{
+        margin: 10px 0;
+        float: right;
         width: 65;
     }
 
     .buttonLoad{
-        width: 100;
+        margin: 0 20px;
+        width: 150px;
+    }
+
+    .taskgrid{
+        display: grid;
+        grid-template-rows: 1fr 1fr;
+        grid-template-columns: 1fr 1fr;
+        grid-column-gap: 30px;
+    }
+    .CodeMirror{
+        max-width: 600px;
     }
 </style>
-
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.0/codemirror.min.css" integrity="sha512-xIf9AdJauwKIVtrVRZ0i4nHP61Ogx9fSRAkCLecmE2dL/U8ioWpDvFCAy4dcfecN72HHB9+7FfQj3aiO68aaaw==" crossorigin="anonymous" />
     <link rel="stylesheet" href="https://codemirror.net/theme/monokai.css"/>
+    <link href="https://fonts.googleapis.com/css?family=Didact+Gothic" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
-
 <body>
-    <ul class="nav nav-tabs">
-        <li role="presentation">
-            <a href="./render?model=$_[infrastructure.internal.assets.default]/api/v1/public/renders/utils/director/tasksManagement/model.json&view=$_[infrastructure.internal.assets.default]/api/v1/public/renders/utils/director/tasksManagement/view.html&ctrl=$_[infrastructure.internal.assets.default]/api/v1/public/renders/utils/director/tasksManagement/controller.js">Tasks Managenement</a>
-        </li>
-        <li role="presentation" class="active">
-            <a href="#">Tasks testing</a>
-        </li>
-    </ul>
-
-    <div class="row row-equal">
-        <div class="col-lg-6 col-md-6 col-sm-6 col-xs-12 col-equal">
-            <h2>Test Task</h2>
-            <div style="margin-top:30px;">
-                <h4>Script Text</h4>
-                <textarea ng-model="form.scriptText" type="text" class="form-control halfTextarea" id="scriptText"></textarea>
-
-                <input type="file" id="file" name="file" style="margin-top:10px"/>
-                <button ng-click="loadFile()" class="btn btn-primary buttonLoad">Load Script</button>
-                <div style="margin-top:30px;">
-                    <h4>Script Configuration</h4>
-                    <textarea ng-model="form.scriptConfig" type="text" class="form-control halfTextarea" id="scriptConfig"></textarea>
-                    <button ng-click="testScript()" class="btn btn-primary buttonTest">Test</button>
+    <main class="bodyContainer">
+        <div></div>
+        <div class="wrapper">
+            <a href="$_[infrastructure.external.render.default]"
+					class="btn btn-primary btn-sm" style="margin: 10px;">
+					Main page
+			</a>
+            <div class="title" style="padding: 30px 0 20px; margin: 0">
+                <h2>Panel de administración</h2>
+                <span class="byline">Panel de pruebas de scripts para tareas</span>
+            </div>
+            <ul class="nav nav-tabs">
+                <li class="nav-item">
+                  <a class="nav-link"  href="./render?model=$_[infrastructure.internal.assets.default]/api/v1/public/renders/utils/database/model.json&view=$_[infrastructure.internal.assets.default]/api/v1/public/renders/utils/database/view.html&ctrl=$_[infrastructure.internal.assets.default]/api/v1/public/renders/utils/database/controller.js">Bases de datos</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link " href="./render?model=$_[infrastructure.internal.assets.default]/api/v1/public/renders/utils/director/tasksManagement/model.json&view=$_[infrastructure.internal.assets.default]/api/v1/public/renders/utils/director/tasksManagement/view.html&ctrl=$_[infrastructure.internal.assets.default]/api/v1/public/renders/utils/director/tasksManagement/controller.js">Gestion de tareas</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link active" aria-current="page" href="#">Prueba de tareas</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link " href="./render?model=$_[infrastructure.internal.assets.default]/api/v1/public/renders/commons-ui/model.json&view=$_[infrastructure.internal.assets.default]/api/v1/public/renders/commons-ui/view.html&ctrl=$_[infrastructure.internal.assets.default]/api/v1/public/renders/commons-ui/controller.js" >Commons</a>
+                </li>
+            </ul>
+            <div style="padding: 40px;">
+                <div>
+                    <h2>Test Task</h2>
+                    <div>
+                        <div ng-if="displayMessage">
+                            <div ng-if="message === 'ok'">
+                                <div class="alert alert-success message" role="alert"><strong>{{responseCode}}</strong> {{taskTestResponse}}</div>
+                            </div>
+                            <div ng-if="message === 'error'">
+                                <div class="alert alert-danger message" role="alert"><strong>{{responseCode}}</strong> {{taskTestResponse}}</div>
+                            </div>
+                            <div ng-if="message === 'badFields'">
+                                <div class="alert alert-danger message" role="alert">{{taskTestResponse}}</div>
+                            </div>
+                        </div>
+                    </div>  
+                    <div class="taskgrid">
+                        <div style="margin-top:30px;">
+                            <h4>Script Text</h4>
+                            <textarea ng-model="form.scriptText" type="text" class="form-control halfTextarea" id="scriptText"></textarea>
+            
+                            <input type="file" id="file" name="file" style="margin-top:10px"/>
+                            <button ng-click="loadFile()" class="btn btn-primary buttonLoad">Load Script</button>
+                        </div>
+                        <div style="margin-top:30px;">
+                            <h4>Script Configuration</h4>
+                            <textarea ng-model="form.scriptConfig" type="text" class="form-control halfTextarea" id="scriptConfig"></textarea>
+                            <button ng-click="testScript()" class="btn btn-primary buttonTest">Test</button>
+                        </div>
+                        <div style="grid-column: span 2; margin: auto;width: 600px;">
+                            <div ng-if="message === ''">
+                                <h4 style="margin-top: 82px;">Result</h4>
+                            </div>
+                            <div ng-if="message !== ''">
+                                <h4>Result</h4>
+                            </div>
+                            <textarea class="form-control fullTextarea" id="scriptResponse">{{scriptResponse}}</textarea>
+                        </div>
+                    </div>    
                 </div>
             </div>
         </div>
-        <div class="col-lg-6 col-md-6 col-sm-6 col-xs-12 col-equal">
-            <div ng-if="displayMessage">
-                <div ng-if="message === 'ok'">
-                    <div class="alert alert-success message" role="alert"><strong>{{responseCode}}</strong> {{taskTestResponse}}</div>
-                </div>
-                <div ng-if="message === 'error'">
-                    <div class="alert alert-danger message" role="alert"><strong>{{responseCode}}</strong> {{taskTestResponse}}</div>
-                </div>
-                <div ng-if="message === 'badFields'">
-                    <div class="alert alert-danger message" role="alert">{{taskTestResponse}}</div>
-                </div>
-            </div>
-            <div ng-if="message === ''">
-                <h4 style="margin-top: 82px;">Result</h4>
-            </div>
-            <div ng-if="message !== ''">
-                <h4>Result</h4>
-            </div>
-            <textarea class="form-control fullTextarea" id="scriptResponse">{{scriptResponse}}</textarea>
-        </div>  
-    </div>
+    </main>
 </body>
