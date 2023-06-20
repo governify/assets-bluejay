@@ -274,7 +274,7 @@ $scope.toggleSlackbot = function (project,forAdmin) {
         } else {
             $http({
                 method: 'GET',
-                url: `$_[infrastructure.internal.assets.default]/api/v1/info/public/director/notificationScriptSimpl.js`
+                url: `$_[infrastructure.external.assets.default]/api/v1/info/public/director/notificationScriptSimpl.js`
             }).then(() => {
                 // interval in seconds * 1000 -> miliseconds
                 const selectedInterval = forAdmin? $scope.adminNotificationsInterval*1000 : $scope.studentNotificationsInterval*1000
@@ -284,7 +284,7 @@ $scope.toggleSlackbot = function (project,forAdmin) {
                     running: true,
                     config: {
                         //urls differ when running in development or in production
-                        urls: {assets:`$_[infrastructure.internal.assets.default]`,scopes:`$_[infrastructure.internal.scopes.default]`,registry:`$_[infrastructure.internal.registry.default]`,dashboard:`$_[infrastructure.internal.dashboard.default]`,reporter:`$_[infrastructure.internal.reporter.default]`},
+                        urls: {assets:`$_[infrastructure.internal.assets.default]`,scopes:`$_[infrastructure.internal.scopes.default]`,registry:`$_[infrastructure.internal.registry.default]`,dashboard:`$_[infrastructure.external.dashboard.default]`,reporter:`$_[infrastructure.external.reporter.default]`},
                         classId: classId,
                         projectId: projectId,
                         projectName: project.name,

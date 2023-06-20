@@ -90,7 +90,7 @@ Released   : 20140228
 					<!-- set time for admin notifications -->
 					<div class="input-group input-group-sm" style="width:auto">
 						<select class="form-control" >
-							<option value="8" ng-if="isDevelopEnviroment" ng-selected="adminNotificationsInterval == 8">8 Seconds</option>
+							<option value="8" ng-if="isDevelopEnviroment" ng-selected="adminNotificationsInterval == 8">Continuously</option>
 							<option value="3600" ng-selected="adminNotificationsInterval == 3600">Hourly</option>
 							<option value="86400" ng-selected="adminNotificationsInterval == 86400">Daily</option>
 							<option value="604800" ng-selected="adminNotificationsInterval == 604800">Weekly</option>
@@ -100,7 +100,7 @@ Released   : 20140228
 						</button>
 					</div>
 					<!-- Admin notifications switch-->
-					<div class="row2 tooltipbottom" ng-click="toggleAllSlack($event,true)" type="button" style="gap:0; border:1px solid #ced4da; border-radius: 1rem;">
+					<div ng-if="!(tpaprojectskeys.length == 0 || tpaprojectskeys[0] == null)" class="row2 tooltipbottom" ng-click="toggleAllSlack($event,true)" type="button" style="gap:0; border:1px solid #ced4da; border-radius: 1rem;">
 						<div class="btn-sm" ng-if="!allAdminNotifications" style="background-color: #ced4da; padding:2 4 2 2; margin:2 4 2 2; border-radius: 1rem; width: 2rem; justify-content: center;">
 							OFF
 						</div>
@@ -111,7 +111,7 @@ Released   : 20140228
 						<span class="tooltipbottomtext">
 							<li><b>Hook channel:</b> {{slackAdm}}</li>
 							<li><b>Message interval:</b>
-								{{adminNotificationsInterval==604800?"Weekly":adminNotificationsInterval==86400?"Daily":adminNotificationsInterval==3600?"Hourly":"Uknown"}} </li>
+								{{adminNotificationsInterval==604800?"Weekly":adminNotificationsInterval==86400?"Daily":adminNotificationsInterval==3600?"Hourly":adminNotificationsInterval==8?"Continuously (8 seconds)":"Uknown"}} </li>
 						</span>
 					</div>
 
@@ -201,16 +201,16 @@ Released   : 20140228
 						<div class="well" style="margin-right: 10px">
 							<h3 style="padding-bottom: 20px;">Audited projects</h3>
 							<!-- Students notification managment -->
-							<div class="notification-box" style="margin-left: -0.5rem; margin-right: -0.5rem; padding: 0.5rem 0.5rem;">
+							<div class="notification-box" style="margin-left: -0.5rem; margin-right: -0.5rem; padding: 0.5rem 0.5rem;" ng-if="!(tpaprojectskeys.length == 0 || tpaprojectskeys[0] == null)">
 
-								<div class="row2" style="justify-content: space-between;">
+								<div class="row2" style="justify-content: space-between;" >
 									<b>Students Notifications:</b>
 
 									<div class="row2">
 										<!-- set time for student notifications -->
 										<div class="input-group input-group-sm" style="width:auto">
 											<select class="form-control" >
-											  <option value="8" ng-if="isDevelopEnviroment" ng-selected="studentNotificationsInterval == 8">8 Seconds</option>
+											  <option value="8" ng-if="isDevelopEnviroment" ng-selected="studentNotificationsInterval == 8">Continuously</option>
 											  <option value="3600" ng-selected="studentNotificationsInterval == 3600">Hourly</option>
 											  <option value="86400" ng-selected="studentNotificationsInterval == 86400">Daily</option>
 											  <option value="604800" ng-selected="studentNotificationsInterval == 604800">Weekly</option>
@@ -230,7 +230,7 @@ Released   : 20140228
 											On
 											<span class="tooltipbottomtext">
 												<li><b>Message interval:</b>
-													{{studentNotificationsInterval==604800?"Weekly":studentNotificationsInterval==86400?"Daily":studentNotificationsInterval==3600?"Hourly":"Uknown"}}</li>
+													{{studentNotificationsInterval==604800?"Weekly":studentNotificationsInterval==86400?"Daily":studentNotificationsInterval==3600?"Hourly":studentNotificationsInterval==8?"Continuously (8 seconds)":"Uknown"}}</li>
 											</span>
 										</div>
 									</div>
