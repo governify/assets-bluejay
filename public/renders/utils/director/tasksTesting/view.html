@@ -88,18 +88,18 @@
 					Main page
 			</a>
             <div class="title" style="padding: 30px 0 20px; margin: 0">
-                <h2>Panel de administración</h2>
-                <span class="byline">Panel de pruebas de scripts para tareas</span>
+                <h2>Administration Dashboard</h2>
+                <span class="byline">Load and run a task</span>
             </div>
             <ul class="nav nav-tabs">
                 <li class="nav-item">
-                  <a class="nav-link"  href="./render?model=$_[infrastructure.internal.assets.default]/api/v1/public/renders/utils/database/model.json&view=$_[infrastructure.internal.assets.default]/api/v1/public/renders/utils/database/view.html&ctrl=$_[infrastructure.internal.assets.default]/api/v1/public/renders/utils/database/controller.js">Bases de datos</a>
+                  <a class="nav-link"  href="./render?model=$_[infrastructure.internal.assets.default]/api/v1/public/renders/utils/database/model.json&view=$_[infrastructure.internal.assets.default]/api/v1/public/renders/utils/database/view.html&ctrl=$_[infrastructure.internal.assets.default]/api/v1/public/renders/utils/database/controller.js">Databases</a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link " href="./render?model=$_[infrastructure.internal.assets.default]/api/v1/public/renders/utils/director/tasksManagement/model.json&view=$_[infrastructure.internal.assets.default]/api/v1/public/renders/utils/director/tasksManagement/view.html&ctrl=$_[infrastructure.internal.assets.default]/api/v1/public/renders/utils/director/tasksManagement/controller.js">Gestion de tareas</a>
+                  <a class="nav-link " href="./render?model=$_[infrastructure.internal.assets.default]/api/v1/public/renders/utils/director/tasksManagement/model.json&view=$_[infrastructure.internal.assets.default]/api/v1/public/renders/utils/director/tasksManagement/view.html&ctrl=$_[infrastructure.internal.assets.default]/api/v1/public/renders/utils/director/tasksManagement/controller.js">Tasks managment</a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link active" aria-current="page" href="#">Prueba de tareas</a>
+                  <a class="nav-link active" aria-current="page" href="#">Task runner</a>
                 </li>
                 <li class="nav-item">
                   <a class="nav-link " href="./render?model=$_[infrastructure.internal.assets.default]/api/v1/public/renders/commons-ui/model.json&view=$_[infrastructure.internal.assets.default]/api/v1/public/renders/commons-ui/view.html&ctrl=$_[infrastructure.internal.assets.default]/api/v1/public/renders/commons-ui/controller.js" >Commons</a>
@@ -107,7 +107,7 @@
             </ul>
             <div style="padding: 40px;">
                 <div>
-                    <h2>Test Task</h2>
+                    <h2>Run Task</h2>
                     <div>
                         <div ng-if="displayMessage">
                             <div ng-if="message === 'ok'">
@@ -132,7 +132,7 @@
                         <div style="margin-top:30px;">
                             <h4>Script Configuration</h4>
                             <textarea ng-model="form.scriptConfig" type="text" class="form-control halfTextarea" id="scriptConfig"></textarea>
-                            <button ng-click="testScript()" class="btn btn-primary buttonTest">Test</button>
+                            <button ng-click="testScript()" class="btn btn-primary buttonTest">Run</button>
                         </div>
                         <div style="grid-column: span 2; margin: auto;width: 600px;">
                             <div ng-if="message === ''">
