@@ -1,11 +1,17 @@
 $scope.displayMessage = false;
 $scope.message = "";
 $scope.responseCode = "";
-$scope.scriptResponse = "";
+$scope.scriptResponse = "{}";
+const doc = "# TIPS \n- Load example 1 from dropdown to get started";
+const tasksPath = 'public/director/tasks';
+
+
 $scope.form = {
-    scriptText : "",
-    scriptConfig : undefined
+    scriptText :  "//script",
+    scriptConfig : "{}"
 }
+$scope.folders = []; //example: $scope.folders = [{label: 'Folder 1',options: ['script 1', 'script 2']},{label: 'Folder 2',options: ['script 3']}];
+
 var scriptTextEditor = undefined;
 var scriptConfigEditor = undefined;
 var scriptResponseEditor = undefined;
@@ -27,28 +33,36 @@ jQuery.loadScript = function (url, callback) {
     });
 }
 
-
+//CODE HIGHLIGHTING AND MARKDOWN
 $.loadScript('https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.0/codemirror.min.js', function(){
-    $.loadScript('https://codemirror.net/mode/javascript/javascript.js', function(){
+    $.loadScript('https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.0/mode/javascript/javascript.min.js', function(){
+        $.loadScript('https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.0/addon/lint/lint.min.js', function(){
+            $.loadScript('https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.0/addon/lint/json-lint.min.js', function(){
+                scriptConfigEditor = CodeMirror.fromTextArea(document.getElementById("scriptConfig"), {
+                    mode: "application/json",
+                    lineNumbers: true,
+                    theme: "material",
+                    lint: true
+                });
+            });
+                scriptResponseEditor = CodeMirror.fromTextArea(document.getElementById("scriptResponse"), {
+                    mode: "application/json",
+                    lineNumbers: true,
+                    theme: "material",
+                    readOnly: true
+                });
+        });
         scriptTextEditor = CodeMirror.fromTextArea(document.getElementById("scriptText"), {
             mode: "javascript",
             lineNumbers: true,
-            theme: "monokai"
-        });
-        scriptConfigEditor = CodeMirror.fromTextArea(document.getElementById("scriptConfig"), {
-            mode: "javascript",
-            lineNumbers: true,
-            theme: "monokai"
-        });
-        scriptResponseEditor = CodeMirror.fromTextArea(document.getElementById("scriptResponse"), {
-            mode: "javascript",
-            lineNumbers: true,
-            theme: "monokai",
-            readOnly:true
+            theme: "material"
         });
     });
 });
-
+$.getScript('https://cdn.jsdelivr.net/npm/marked@2.1.3/marked.min.js', function(){
+    const html = marked(doc);
+    $scope.documentation = html;
+});
 
 
 
@@ -74,8 +88,8 @@ $scope.testScript = function() {
             $scope.message = "ok";
             $scope.taskTestResponse = "Script successfully tested";
             $scope.responseCode = response.status.toString();
-            $scope.scriptResponse = JSON.stringify(response.data);
-            scriptResponseEditor.setValue(JSON.stringify(response.data));
+            $scope.scriptResponse = JSON.stringify(response.data,null,2);
+            scriptResponseEditor.setValue(JSON.stringify(response.data,null,2));
         }).catch(err => {
             $scope.message = "error";
             $scope.taskTestResponse = "Script unsuccessfully tested";
@@ -101,3 +115,67 @@ $scope.loadFile = function() {
         reader.readAsBinaryString(f);
     }
 }
+
+
+function getFolderNames(path) {
+    return $http.get("$_[infrastructure.external.assets.default]/api/v1/info/" + path)
+      .then(response => {
+        const folderInfo = response.data;
+        const folders = folderInfo.files.filter(file => file.dir).map(file => file.name);
+        return folders;
+      })
+      .catch(err => {
+        console.log(err);
+        return [];
+      });
+  }
+  
+  function setSelectFolders(tasksPath) {
+    getFolderNames(tasksPath)
+      .then(taskTypes => {
+        const selectFolders = [];
+  
+        taskTypes.forEach(taskType => {
+          getFolderNames(tasksPath + '/' + taskType)
+            .then(tasksNames => {
+              const selectGroup = { label: taskType, options: tasksNames };
+              selectFolders.push(selectGroup);
+            })
+            .finally(() => {
+              $scope.folders = selectFolders;
+            });
+        });
+      });
+  }
+
+// LOAD SCRIPTS FORM BLUEJAY ASSETS
+
+setSelectFolders(tasksPath);
+
+
+$scope.loadAssetScript = function(selectedTaskFolder){
+    //load script.js configuration.json documentation.md
+    const newUrl = "$_[infrastructure.external.assets.default]/api/v1/" + tasksPath +"/"+ selectedTaskFolder
+    console.log(newUrl)
+    //JS
+    $http.get(newUrl+"/script.js")
+      .then(response => {
+        scriptTextEditor.setValue(response.data);}).catch(err => scriptTextEditor.setValue("//Script not found"))
+    //JSON
+        $http.get(newUrl+"/configuration.json")
+    .then(response => {
+    scriptConfigEditor.setValue(JSON.stringify(response.data,null,2));}).catch(err => scriptConfigEditor.setValue('{"error":"configuration.json not found"}'))
+    //MD
+    $http.get(newUrl+"/documentation.md")
+    .then(response => {
+        $.getScript('https://cdn.jsdelivr.net/npm/marked@2.1.3/marked.min.js', function(){
+            const html = marked(response.data);
+            $scope.documentation = html;
+            document.getElementById('documentation').innerHTML = html;
+        });
+    }).catch(err => document.getElementById('documentation').innerHTML = "documentation.md not found")
+    
+
+}
+
+
