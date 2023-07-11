@@ -1,4 +1,15 @@
-## Usage example
+## Example 1
 
-1. Always use the module.exports.main
-2. Return an object
+- Run this example to see how results are printed
+- Returns config.name repeated as many times
+as specified in config.repeat
+
+Click run to test the script.
+
+configuration.json file needed:
+```json
+{
+    "name": "name of the script",
+    "repeat": 4
+}
+```

@@ -2,7 +2,7 @@ $scope.displayMessage = false;
 $scope.message = "";
 $scope.responseCode = "";
 $scope.scriptResponse = "{}";
-const doc = "# TIPS \n- Load example 1 from dropdown to get started";
+const doc = "# TIPS \n- You can load scripts from the dropdown avobe. Try 'example' 1 or 'template' for documentation \n- Also it is possible to upload a script from your computer <br> warning: currently config upload is not suppoted, write it  manually";
 const tasksPath = 'public/director/tasks';
 
 
@@ -11,7 +11,6 @@ $scope.form = {
     scriptConfig : "{}"
 }
 $scope.folders = []; //example: $scope.folders = [{label: 'Folder 1',options: ['script 1', 'script 2']},{label: 'Folder 2',options: ['script 3']}];
-
 var scriptTextEditor = undefined;
 var scriptConfigEditor = undefined;
 var scriptResponseEditor = undefined;
@@ -44,13 +43,14 @@ $.loadScript('https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.0/codemirro
                     theme: "material",
                     lint: true
                 });
-            });
                 scriptResponseEditor = CodeMirror.fromTextArea(document.getElementById("scriptResponse"), {
                     mode: "application/json",
                     lineNumbers: true,
                     theme: "material",
-                    readOnly: true
+                    readOnly: true,
+                    lint: true
                 });
+            });
         });
         scriptTextEditor = CodeMirror.fromTextArea(document.getElementById("scriptText"), {
             mode: "javascript",
@@ -109,8 +109,9 @@ $scope.loadFile = function() {
         let reader = new FileReader();
         reader.addEventListener('load', function (e) {
             let data = e.target.result;
-            $scope.$apply(function(){$scope.form.scriptText = data;});;
+            $scope.$apply(function(){$scope.form.scriptText = data;});
             scriptTextEditor.setValue(data);
+            scriptResponseEditor.setValue("Waiting for results")
         });
         reader.readAsBinaryString(f);
     }
@@ -150,21 +151,22 @@ function getFolderNames(path) {
 
 // LOAD SCRIPTS FORM BLUEJAY ASSETS
 
-setSelectFolders(tasksPath);
+
 
 
 $scope.loadAssetScript = function(selectedTaskFolder){
     //load script.js configuration.json documentation.md
     const newUrl = "$_[infrastructure.external.assets.default]/api/v1/" + tasksPath +"/"+ selectedTaskFolder
-    console.log(newUrl)
+
+    scriptResponseEditor.setValue("")
     //JS
     $http.get(newUrl+"/script.js")
       .then(response => {
-        scriptTextEditor.setValue(response.data);}).catch(err => scriptTextEditor.setValue("//Script not found"))
+        scriptTextEditor.setValue(response.data);}).catch(err => scriptTextEditor.setValue(null))
     //JSON
         $http.get(newUrl+"/configuration.json")
     .then(response => {
-    scriptConfigEditor.setValue(JSON.stringify(response.data,null,2));}).catch(err => scriptConfigEditor.setValue('{"error":"configuration.json not found"}'))
+    scriptConfigEditor.setValue(JSON.stringify(response.data,null,2));}).catch(err => scriptConfigEditor.setValue(null))
     //MD
     $http.get(newUrl+"/documentation.md")
     .then(response => {
@@ -177,5 +179,7 @@ $scope.loadAssetScript = function(selectedTaskFolder){
     
 
 }
+
+setSelectFolders(tasksPath);
 
 

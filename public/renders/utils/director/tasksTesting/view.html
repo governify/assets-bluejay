@@ -141,12 +141,11 @@
                         <input style="display: none;" onchange="angular.element(this).scope().loadFile()" type="file" id="file" name="file"></input>
     
 
-                            <div ng-init="y()"></div>
                             <select class="custom-select" ng-model="selectedOption" ng-change="loadAssetScript(selectedOption)">
                                 <option value="" disabled>Load from BLUEJAY</option>
                             </optgroup>
                             <optgroup ng-repeat="folder in folders" label="{{ folder.label }}">
-                                <option  ng-repeat="option in folder.options" ng-selected="selectedOption" value="{{ folder.label +'/'+ option }}">{{ option }}</option>
+                                <option  ng-repeat="option in folder.options" value="{{ folder.label +'/'+ option }}">{{ option }}</option>
                             </optgroup>
                         </select>
                         <button ng-click="testScript()" class="btn btn-primary">Run</button>
