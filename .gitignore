@@ -15,4 +15,7 @@ public/director/*
 !public/director/template.js
 !public/director/check-status.js
 !public/director/generate_from_template.js
+!public/director/tasks/examples
+!public/director/tasks/utils
+!public/director/tasks/system
 public/logs
