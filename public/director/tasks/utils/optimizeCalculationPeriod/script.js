@@ -49,8 +49,8 @@ module.exports.main = async (config) => {
       //why the %(mod) operation? Lets say you have 5 computations problems(index) to do
       //in 2 defined Times. You assing computations C0->T0 C1->T1 !!start again in Time 0!! C2-T0, C3->T1, C4->T0... the index can have big values, 
       //mod operation resets them to always keep them in the batchs range
-      const adjustedInit = initDate.add((index%numberOfBatchs) * minutesBetweenRuns, 'ms').format('YYYY-MM-DDTHH:mm:ss.SSSZ');//i*20 => [00:00, 00:20, 00:40, 00:60]
-      const adjustedEnd = endDate.add((index%numberOfBatchs) * minutesBetweenRuns, 'ms').format('YYYY-MM-DDTHH:mm:ss.SSSZ');
+      const adjustedInit = initDate.add((index%numberOfBatchs) * minutesBetweenRuns *60*1000, 'ms').format('YYYY-MM-DDTHH:mm:ss.SSSZ');//i*20 => [00:00, 00:20, 00:40, 00:60]
+      const adjustedEnd = endDate.add((index%numberOfBatchs) * minutesBetweenRuns *60*1000, 'ms').format('YYYY-MM-DDTHH:mm:ss.SSSZ');
 
       data.init = adjustedInit;
       data.end = adjustedEnd;
