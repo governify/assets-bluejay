@@ -44,7 +44,7 @@
         margin-top: 10px;
     }
 
-    button{
+    .mybutton{
         height: 40px;
         font-size: 16px;
         width: 75;
@@ -69,13 +69,25 @@
         grid-column-gap: 30px;
     }
     .CodeMirror{
-        max-width: 600px;
+        max-width: 100%;
+        height: 100% !important;
     }
+    .bordered{
+        margin-top:5px;border: 1px solid black;
+        width: 600px;
+        height: 400px;
+    }
+    .markdown {
+        height: inherit;
+        overflow: auto;
+    }
+
 </style>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.0/theme/material.min.css">
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.0/codemirror.min.css" integrity="sha512-xIf9AdJauwKIVtrVRZ0i4nHP61Ogx9fSRAkCLecmE2dL/U8ioWpDvFCAy4dcfecN72HHB9+7FfQj3aiO68aaaw==" crossorigin="anonymous" />
-    <link rel="stylesheet" href="https://codemirror.net/theme/monokai.css"/>
     <link href="https://fonts.googleapis.com/css?family=Didact+Gothic" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
@@ -88,18 +100,18 @@
 					Main page
 			</a>
             <div class="title" style="padding: 30px 0 20px; margin: 0">
-                <h2>Panel de administración</h2>
-                <span class="byline">Panel de pruebas de scripts para tareas</span>
+                <h2>Administration Dashboard</h2>
+                <span class="byline">Load and run a task</span>
             </div>
             <ul class="nav nav-tabs">
                 <li class="nav-item">
-                  <a class="nav-link"  href="./render?model=$_[infrastructure.internal.assets.default]/api/v1/public/renders/utils/database/model.json&view=$_[infrastructure.internal.assets.default]/api/v1/public/renders/utils/database/view.html&ctrl=$_[infrastructure.internal.assets.default]/api/v1/public/renders/utils/database/controller.js">Bases de datos</a>
+                  <a class="nav-link"  href="./render?model=$_[infrastructure.internal.assets.default]/api/v1/public/renders/utils/database/model.json&view=$_[infrastructure.internal.assets.default]/api/v1/public/renders/utils/database/view.html&ctrl=$_[infrastructure.internal.assets.default]/api/v1/public/renders/utils/database/controller.js">Databases</a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link " href="./render?model=$_[infrastructure.internal.assets.default]/api/v1/public/renders/utils/director/tasksManagement/model.json&view=$_[infrastructure.internal.assets.default]/api/v1/public/renders/utils/director/tasksManagement/view.html&ctrl=$_[infrastructure.internal.assets.default]/api/v1/public/renders/utils/director/tasksManagement/controller.js">Gestion de tareas</a>
+                  <a class="nav-link " href="./render?model=$_[infrastructure.internal.assets.default]/api/v1/public/renders/utils/director/tasksManagement/model.json&view=$_[infrastructure.internal.assets.default]/api/v1/public/renders/utils/director/tasksManagement/view.html&ctrl=$_[infrastructure.internal.assets.default]/api/v1/public/renders/utils/director/tasksManagement/controller.js">Tasks managment</a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link active" aria-current="page" href="#">Prueba de tareas</a>
+                  <a class="nav-link active" aria-current="page" href="#">Task runner</a>
                 </li>
                 <li class="nav-item">
                   <a class="nav-link " href="./render?model=$_[infrastructure.internal.assets.default]/api/v1/public/renders/commons-ui/model.json&view=$_[infrastructure.internal.assets.default]/api/v1/public/renders/commons-ui/view.html&ctrl=$_[infrastructure.internal.assets.default]/api/v1/public/renders/commons-ui/controller.js" >Commons</a>
@@ -107,7 +119,8 @@
             </ul>
             <div style="padding: 40px;">
                 <div>
-                    <h2>Test Task</h2>
+                    <h2>Run Task</h2>
+                    <!-- RESPONSE MESSAGES -->
                     <div>
                         <div ng-if="displayMessage">
                             <div ng-if="message === 'ok'">
@@ -121,27 +134,57 @@
                             </div>
                         </div>
                     </div>  
-                    <div class="taskgrid">
-                        <div style="margin-top:30px;">
-                            <h4>Script Text</h4>
-                            <textarea ng-model="form.scriptText" type="text" class="form-control halfTextarea" id="scriptText"></textarea>
-            
-                            <input type="file" id="file" name="file" style="margin-top:10px"/>
-                            <button ng-click="loadFile()" class="btn btn-primary buttonLoad">Load Script</button>
-                        </div>
-                        <div style="margin-top:30px;">
-                            <h4>Script Configuration</h4>
-                            <textarea ng-model="form.scriptConfig" type="text" class="form-control halfTextarea" id="scriptConfig"></textarea>
-                            <button ng-click="testScript()" class="btn btn-primary buttonTest">Test</button>
-                        </div>
-                        <div style="grid-column: span 2; margin: auto;width: 600px;">
-                            <div ng-if="message === ''">
-                                <h4 style="margin-top: 82px;">Result</h4>
+                    <!-- BUTTONS -->
+                    <div style="display: flex; max-width: 100%; flex-direction: row;gap:10px">
+                        <!-- UPLOAD FROM FILESYSTEM -->
+                        <label for="file" class="custom-file-upload"><span class="btn" style="border: 1px solid black;">Upload from computer</span></label>
+                        <input style="display: none;" onchange="angular.element(this).scope().loadFile()" type="file" id="file" name="file"></input>
+    
+
+                            <select class="custom-select" ng-model="selectedOption" ng-change="loadAssetScript(selectedOption)">
+                                <option value="" disabled>Load from BLUEJAY</option>
+                            </optgroup>
+                            <optgroup ng-repeat="folder in folders" label="{{ folder.label }}">
+                                <option  ng-repeat="option in folder.options" value="{{ folder.label +'/'+ option }}">{{ option }}</option>
+                            </optgroup>
+                        </select>
+                        <button ng-click="testScript()" class="btn btn-primary">Run</button>
+                    </div>    
+                    
+                    
+                          
+
+                    </div>
+                      <!-- GRID -->
+                    <div style="display: flex;flex-direction: row;justify-content: space-around;gap: 20px;">
+                        <div style="margin-top:30px;width: 50%">
+                            <h4>Script Text .js</h4>
+                            <div class="bordered">
+                            <textarea ng-model="form.scriptText" type="text" id="scriptText"></textarea>  
                             </div>
-                            <div ng-if="message !== ''">
-                                <h4>Result</h4>
+                        </div>
+
+                        <div style="margin-top:30px;width: 50%;">
+                            <h4>Script Configuration .json</h4>
+                            <div class="bordered">
+                                <textarea style="width: 1px;" ng-model="form.scriptConfig" type="text" class="form-control" id="scriptConfig"></textarea>
                             </div>
-                            <textarea class="form-control fullTextarea" id="scriptResponse">{{scriptResponse}}</textarea>
+                        </div>
+                    </div>
+
+
+                    <div style="display: flex; flex-direction: row;justify-content: space-around;gap: 20px;">
+                        <div style="width: 50%">
+                                <h4>Documentation .md</h4>
+                                <div class="bordered">
+                                    <div id="documentation" class="markdown" ng-bind-html="documentation"></div>
+                                </div>
+                        </div>
+                        <div  style="width: 50%">
+                                <h4 >Result .json</h4>
+                            <div class= "bordered">
+                                <textarea  id="scriptResponse">{{scriptResponse}}</textarea>
+                            </div>
                         </div>
                     </div>    
                 </div>

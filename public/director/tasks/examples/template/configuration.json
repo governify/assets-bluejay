@@ -1,0 +1,5 @@
+{
+    "name": "Config template",
+    "variable1": 4,
+    "variable2": {"seconds":36000}
+}

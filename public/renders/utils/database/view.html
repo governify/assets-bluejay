@@ -59,18 +59,17 @@
 					Main page
 			</a>
             <div class="title" style="padding: 30px 0 20px; margin: 0">
-                <h2>Panel de administración</h2>
-                <span class="byline">Restauración y guardado de bases de datos</span>
-            </div>
+                <h2>Administration Dashboard</h2>
+                <span class="byline">Databases backups and restoration</span>            </div>
             <ul class="nav nav-tabs">
                 <li class="nav-item">
-                  <a class="nav-link active" aria-current="page" href="#">Bases de datos</a>
+                  <a class="nav-link active" aria-current="page" href="#">Databases</a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link" href="./render?model=$_[infrastructure.internal.assets.default]/api/v1/public/renders/utils/director/tasksManagement/model.json&view=$_[infrastructure.internal.assets.default]/api/v1/public/renders/utils/director/tasksManagement/view.html&ctrl=$_[infrastructure.internal.assets.default]/api/v1/public/renders/utils/director/tasksManagement/controller.js">Gestion de tareas</a>
+                  <a class="nav-link" href="./render?model=$_[infrastructure.internal.assets.default]/api/v1/public/renders/utils/director/tasksManagement/model.json&view=$_[infrastructure.internal.assets.default]/api/v1/public/renders/utils/director/tasksManagement/view.html&ctrl=$_[infrastructure.internal.assets.default]/api/v1/public/renders/utils/director/tasksManagement/controller.js">Tasks managment</a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link" href="./render?model=$_[infrastructure.internal.assets.default]/api/v1/public/renders/utils/director/tasksTesting/model.json&view=$_[infrastructure.internal.assets.default]/api/v1/public/renders/utils/director/tasksTesting/view.html&ctrl=$_[infrastructure.internal.assets.default]/api/v1/public/renders/utils/director/tasksTesting/controller.js">Prueba de tareas</a>
+                  <a class="nav-link" href="./render?model=$_[infrastructure.internal.assets.default]/api/v1/public/renders/utils/director/tasksTesting/model.json&view=$_[infrastructure.internal.assets.default]/api/v1/public/renders/utils/director/tasksTesting/view.html&ctrl=$_[infrastructure.internal.assets.default]/api/v1/public/renders/utils/director/tasksTesting/controller.js">Task runner</a>
                 </li>
                 <li class="nav-item">
                   <a class="nav-link " href="./render?model=$_[infrastructure.internal.assets.default]/api/v1/public/renders/commons-ui/model.json&view=$_[infrastructure.internal.assets.default]/api/v1/public/renders/commons-ui/view.html&ctrl=$_[infrastructure.internal.assets.default]/api/v1/public/renders/commons-ui/controller.js" >Commons</a>
@@ -80,23 +79,23 @@
                 <table class="table table-bordered">
                     <thead>
                         <tr>
-                            <th scope="col">Nombre BD</th>
-                            <th scope="col">Tipo BD</th>
-                            <th scope="col" style="width: 36%;">Registros guardados</th>
+                            <th scope="col">DB Name</th>
+                            <th scope="col">DB Type</th>
+                            <th scope="col" style="width: 36%;">Saved Backups</th>
                             <th scope="col" style="width: 7%;">Backup</th>
-                            <th scope="col" style="width: 7%;">Restaurar</th>
+                            <th scope="col" style="width: 7%;">Restore</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr ng-repeat="db in databases track by $index">
                             <td>{{db.dbName}}</th>
                             <td>{{db.dbType}}</td>
-                            <td>Ultima version: {{db.records[0].name.split("_")[0]}}
+                            <td>Latest version: {{db.records[0].name.split("_")[0]}}
                                 <div class="btn-group" style="float: right;" role="group" aria-label="Basic example">
                                     <button type="button" class="btn btn-success" ng-click="downloadBD(db.dbName,db.records[0])" ng-disabled="{{db.records.length === 0}}"><i class="fas fa-download"></i></button>
                                     <button type="button" class="btn btn-primary" 
                                         data-bs-toggle="modal" data-bs-target="#registroModal" ng-click="loadRegister(db)" >
-                                        Ver registro
+                                        See backup
                                     </button>
                                 </div>
                             </td>
@@ -129,12 +128,12 @@
                         </div>
                         <div class="modal-body" style="display: flex; justify-content: center;">
                             <div ng-if="dbSelected.records.length === 0" style="flex: 1 1 100%;">
-                                <span class="byline">Sin registros</span>
+                                <span class="byline">No backups</span>
                             </div>
                             <ul class="list-group" style="width: 80%;">
                                 <li class="list-group-item" style="display: flex; justify-content: space-between;" ng-repeat="r in dbSelected.records track by $index">
                                     <div style="width: 70%;" ng-if="$index === 0"> 
-                                        <span class="badge bg-secondary">Ultima Version</span> 
+                                        <span class="badge bg-secondary">Latest Version</span> 
                                         <span style="margin-left: 3%;" style="font-weight: bold;">{{r.name.split("_")[0]}}</span>
                                     </div>
                                     <div style="width: 70%;" ng-if="$index != 0"> 
@@ -149,8 +148,8 @@
                               </ul>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" data-bs-target="#loadBackupModal" class="btn btn-primary" data-bs-toggle="modal" data-bs-dismiss="modal">Cargar backup</button>
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                            <button type="button" data-bs-target="#loadBackupModal" class="btn btn-primary" data-bs-toggle="modal" data-bs-dismiss="modal">Load backup</button>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                         </div>
                     </div>
                     </div>

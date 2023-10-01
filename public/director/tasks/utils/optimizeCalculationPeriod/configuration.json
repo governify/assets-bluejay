@@ -1,0 +1,5 @@
+{
+    "courseRegex": "class1",
+    "maxMinutesDelay": 60,
+    "batchSize": 2
+}
