@@ -5,7 +5,7 @@ module.exports.main = async (config) => {
   let initDate = new Date(config.initialDate);
   let finalDate = new Date(config.finalDate);
 
-  config.notificationConfig = await axios.get(config.urls.assets+'/api/v1/public/director/notification-config.json').then((res) => res.data).catch(() => undefined)
+  config.notificationConfig = await axios.get(config.urls.assets + '/api/v1/public/director/notification-config.json').then((res) => res.data).catch(() => undefined)
 
   if (!config.notificationConfig) {
     console.log("Notification config not found")
@@ -20,12 +20,12 @@ module.exports.main = async (config) => {
   }, 0)
   try {
     config.days = Math.round((new Date() - initDate) / (1000 * 60 * 60 * 24)) + 1;
-    if(config.slackHook){
-        config.hooks = {
-            slack: config.slackHook
-        }
-    }else{
-        config.hooks = await getHooksUrls(config);
+    if (config.slackHook) {
+      config.hooks = {
+        slack: config.slackHook
+      }
+    } else {
+      config.hooks = await getHooksUrls(config);
     }
     config.states = await getStates(config);
     let to = new Date();
@@ -34,12 +34,12 @@ module.exports.main = async (config) => {
   } catch (error) {
     console.log(error)
   }
-  
-return '';
+
+  return '';
 }
 
 async function getHooksUrls(config) {
-  const requestURL = config.urls.scopes+'/api/v1/scopes/development/' + config.classId + '/' + config.projectId;
+  const requestURL = config.urls.scopes + '/api/v1/scopes/development/' + config.classId + '/' + config.projectId;
   let notifications = []
   await axios.get(requestURL).then((response) => {
     notifications = response.data.scope.notifications
@@ -52,23 +52,23 @@ async function getHooksUrls(config) {
 }
 
 async function getStates(config) {
-  let requestURL = config.urls.registry+'/api/v6/agreements/tpa-' + config.projectId;
+  let requestURL = config.urls.registry + '/api/v6/agreements/tpa-' + config.projectId;
   let result = {}
 
   await axios.get(requestURL).then(async (response) => {
     const guarantees = response.data.terms.guarantees.map(guarantee => { return { id: guarantee.id, desc: guarantee.description, valueFunc: guarantee.of[0].objective.split(' >=')[0] } })
     for (let guarantee of guarantees) {
-            result[guarantee.id] = { desc: guarantee.desc, valueFunc: guarantee.valueFunc };
-            requestURL = config.urls.registry+'/api/v6/states/tpa-' + config.projectId + '/guarantees/'
-                + guarantee.id + '?' + new URLSearchParams({ lasts: (config.days + config.historieMax)*2,evidences:'false',withNoEvidences:'false'});
-            console.log(requestURL)
-            await axios.get(requestURL).then((response) => {
-                result[guarantee.id].states = response.data
-            })
-                .catch(() => {
-                throw new Error("Error obtainig guarantee" + guarantee);
-                });
-        }
+      result[guarantee.id] = { desc: guarantee.desc, valueFunc: guarantee.valueFunc };
+      requestURL = config.urls.registry + '/api/v6/states/tpa-' + config.projectId + '/guarantees/'
+        + guarantee.id + '?' + new URLSearchParams({ lasts: (config.days + config.historieMax) * 2, evidences: 'false', withNoEvidences: 'false' });
+      console.log(requestURL)
+      await axios.get(requestURL).then((response) => {
+        result[guarantee.id].states = response.data
+      })
+        .catch(() => {
+          throw new Error("Error obtainig guarantee" + guarantee);
+        });
+    }
   }).catch((err) => {
     console.log("Error obtainig guarantees");
   });
@@ -79,10 +79,10 @@ async function getStates(config) {
 function notificatePeriod(config, to, length) {
 
   let passedGuarantees = 0
-  let bodyText = ''
+  let bodyText = '<br>\n'
 
   for (let guarantee in config.states) {
-    
+
     let states = config.states[guarantee].states.filter(state => new Date(state.period.to) <= to).sort((a, b) => new Date(b.period.to) - new Date(a.period.to)).splice(0, length)
     let stateMessage;
     if (states[0]?.record?.value) passedGuarantees += 1;
@@ -92,10 +92,10 @@ function notificatePeriod(config, to, length) {
     } else {
       stateMessage = { message: 'There is no states for this guarantee yet', emoji: '❗' }
     }
-    bodyText += ' • ' + stateMessage.emoji + config.states[guarantee].desc + ' ➜ ' + stateMessage.message + '\n';
+    bodyText += ' • ' + stateMessage.emoji + config.states[guarantee].desc + ' ➜ ' + stateMessage.message + '<br>\n';
   }
 
-  let bodyPost = (key,forAdmin) => ({
+  let bodyPost = (key, forAdmin) => ({
     blocks: [
       {
         "type": "header",
@@ -108,7 +108,7 @@ function notificatePeriod(config, to, length) {
         "type": "header",
         "text": {
           "type": "plain_text",
-          "text": `${forAdmin ? ("Team '" + config.projectName + "' from " + config.classId) : ("Your team '"+config.projectName+"'")} is fullfiling ${passedGuarantees} out of ${Object.keys(config.states).length}:`
+          "text": `${forAdmin ? ("Team '" + config.projectName + "' from " + config.classId) : ("Your team '" + config.projectName + "'")} is fullfiling ${passedGuarantees} out of ${Object.keys(config.states).length}:`
         }
       },
       {
@@ -129,10 +129,36 @@ function notificatePeriod(config, to, length) {
       }
     ]
   });
+
+
   for (let key in config.hooks) {
-    axios.post(config.hooks[key], bodyPost(key,config.forAdmin)).catch((err) => {
+    axios.post(config.hooks[key], bodyPost(key, config.forAdmin)).catch((err) => {
       console.log('Error sending feedback to ' + key)
     })
+  }
+  if (config.email) { //for admin you
+    const sgMail = require('@sendgrid/mail')
+    let textFromBody = bodyPost("", config.forAdmin).blocks.map(b=>{
+      if(b.text?.text) return b.text.text
+      return b.elements[0].text
+    }).join('\r')
+    sgMail.setApiKey(process.env.SENDGRID_API_KEY)
+    const msg = {
+      to: config.email, 
+      from: 'governify.auditor@gmail.com', 
+      subject: 'Bluejay results',
+      text: textFromBody.replace("<br>",""),
+      html: _convertBlocksToHTML(bodyPost("", config.forAdmin).blocks)
+    }
+
+    sgMail
+      .send(msg)
+      .then(() => {
+        console.log('Email sent')
+      })
+      .catch((error) => {
+        console.error(error)
+      })
   }
 }
 
@@ -176,4 +202,25 @@ function calculateEvolution(guarantee, states, history) {
     percentageChange = Math.abs(percentageChange)
   }
   return { evolution, percentageChange }
+}
+function _convertBlocksToHTML(blocks) {
+  let htmlString = '';
+
+  blocks.forEach(block => {
+    switch (block.type) {
+      case 'header':
+        htmlString += `<b>${block.text.text}</b>`;
+        break;
+      case 'context':
+        htmlString += `<div>${block.elements[0].text}</div>`;
+        break;
+      case 'section':
+        htmlString += `<b>${block.text.text}</b>`.replace("*View your dashboard <",`View your dashboard <a href="`).replace("|here>*",`"> here</a>`);;
+        break;
+      default:
+        break;
+    }
+  });
+
+  return htmlString;
 }

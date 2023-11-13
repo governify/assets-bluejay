@@ -11,6 +11,7 @@ public/director/*
 !public/director/notification-config.json
 !public/director/notificationScriptSimpl.js
 !public/director/notificationSimulation.js
+!public/director/adminEmailNotification.js
 !public/director/template.json
 !public/director/template.js
 !public/director/check-status.js
