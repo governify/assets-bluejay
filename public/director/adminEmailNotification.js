@@ -1,6 +1,6 @@
 const axios = require("axios");
 module.exports.main = async (config) => {
-  console.log("projects",Object.keys(config.projects))
+
   let initDate = new Date(config.initialDate);
   let finalDate = new Date(config.finalDate);
   let emailContent={html:"",text:""};
@@ -21,7 +21,7 @@ module.exports.main = async (config) => {
   //-------------------------------
   try {
     config.days = Math.round((new Date() - initDate) / (1000 * 60 * 60 * 24)) + 1;
-    console.log("DAYSSS",config.days)
+
     let emailResultsHtml = "";
     if(config.projects){
       let projects = config.projects
@@ -36,7 +36,8 @@ module.exports.main = async (config) => {
           finalDate: config.finalDate,
           forAdmin: config.forAdmin, //displays different messages
           days: config.days,
-          historieMax: config.historieMax
+          historieMax: config.historieMax,
+          notificationConfig: config.notificationConfig
       }
         projectConfig.states = await getStates(projectConfig);
         let to = new Date();
@@ -148,6 +149,9 @@ function notificatePeriod(config, to, length) {
 }
 
 function getStateMessage(guarantee, states, config) {
+  try {
+    
+
   let stateMessage = undefined
   let actualState = states[0].record.value ? 'ok' : 'nok';
   let mTime = config.notificationConfig['N' + actualState]
@@ -172,6 +176,10 @@ function getStateMessage(guarantee, states, config) {
   }
   if (!stateMessage) stateMessage = messages.filter(message => message.evolution === 'stalled' || message.condition === 'onEnter')[0]
   return stateMessage
+} catch (error) {
+    console.log(error)
+    return {message: "error getting message. Contact admin. "+error,emoji: "⚠️"}
+}
 }
 
 function calculateEvolution(guarantee, states, history) {
@@ -216,24 +224,26 @@ function sendMail(email,text,html){
      if (email) { //for admin 
     console.log("sending")
     const sgMail = require('@sendgrid/mail')
+    for(singleEmail of email.split(",")){
+      try {
+        sgMail.setApiKey(process.env.SENDGRID_API_KEY)
+        const msg = {
+          from: 'governify.auditor@gmail.com',
+          to: singleEmail,
+          subject: 'Bluejay results',
+          text: text,
+          html: html
+        }
     
-    sgMail.setApiKey(process.env.SENDGRID_API_KEY)
-    const msg = {
-      to: email,
-      from: 'governify.auditor@gmail.com',
-      subject: 'Bluejay results',
-      text: text,
-      html: html
+        sgMail
+          .send(msg)
+          .then(() => {
+            console.log('Email sent')
+          })
+      } catch (error) {
+        console.log("Error sending mail to "+singleEmail)
+      }
     }
-
-    sgMail
-      .send(msg)
-      .then(() => {
-        console.log('Email sent')
-      })
-      .catch((error) => {
-        console.error(error)
-      })
   } 
   } catch (error) {
     console.log("err sending email",error)

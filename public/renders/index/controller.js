@@ -509,7 +509,10 @@ $scope.toggleAllEmail = function (ev,forAdmin) {
                     }
                     if(forAdmin?!project.toggleAdmEmail:!project.toggleEmail){ //was not already activated, turn off to reset
                         if(forAdmin){//only send one email so push projects and send it  outside for
-                            adminEmailNotificationProjectList.push(project)
+                            if(project.projectId != "CS169-2023-auditor")adminEmailNotificationProjectList.push({
+                                projectId: project.projectId,
+                                name: project.name
+                              })
                             project.toggleAdmEmail = true
                         }else{
 
@@ -546,7 +549,6 @@ $scope.toggleAllEmail = function (ev,forAdmin) {
                 if(forAdmin?project.toggleAdmEmail:project.toggleEmail){ //only if was active, toggle would turn it on if it was deactivated(bad idea)
                     
                     if(forAdmin){
-                        adminEmailNotificationProjectList = adminEmailNotificationProjectList.filter(item => item !== project)
                         project.toggleAdmEmail = false;
                     }else{
 
@@ -559,6 +561,8 @@ $scope.toggleAllEmail = function (ev,forAdmin) {
         }
         if(forAdmin){
             $scope.allAdminNotificationsEmail = false
+            adminEmailNotificationProjectList = []
+
             localStorage.setItem("allAdminNotificationsEmail",false)
             sendAdminEmail("stop")
         }else{

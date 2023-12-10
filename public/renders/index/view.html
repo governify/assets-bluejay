@@ -237,10 +237,10 @@ Released   : 20140228
 										<!-- set time for student notifications -->
 										<div class="input-group input-group-sm" style="width:auto">
 											<select class="form-control" >
-											  <option value="8" ng-if="isDevelopEnviroment" ng-selected="adminNotificationsInterval == 8">Continuously</option>
-											  <option value="3600" ng-selected="adminNotificationsInterval == 3600">Hourly</option>
-											  <option value="86400" ng-selected="adminNotificationsInterval == 86400">Daily</option>
-											  <option value="604800" ng-selected="adminNotificationsInterval == 604800">Weekly</option>
+											  <option value="8" ng-if="isDevelopEnviroment" ng-selected="studentNotificationsInterval == 8">Continuously</option>
+											  <option value="3600" ng-selected="studentNotificationsInterval == 3600">Hourly</option>
+											  <option value="86400" ng-selected="studentNotificationsInterval == 86400">Daily</option>
+											  <option value="604800" ng-selected="studentNotificationsInterval == 604800">Weekly</option>
 											</select>
 											<button class="btn btn-primary btn-sm" type="button" id="button-addon2" ng-click="setSlackInterval($event,false)">
 												Set
@@ -257,7 +257,7 @@ Released   : 20140228
 											On
 											<span class="tooltipbottomtext">
 												<li><b>Message interval:</b>
-													{{adminNotificationsInterval==604800?"Weekly":adminNotificationsInterval==86400?"Daily":adminNotificationsInterval==3600?"Hourly":adminNotificationsInterval==8?"Continuously (8 seconds)":"Uknown"}}</li>
+													{{studentNotificationsInterval==604800?"Weekly":studentNotificationsInterval==86400?"Daily":studentNotificationsInterval==3600?"Hourly":studentNotificationsInterval==8?"Continuously (8 seconds)":"Uknown"}}</li>
 											</span>
 										</div>
 									</div>
@@ -282,7 +282,7 @@ Released   : 20140228
 											On
 											<span class="tooltipbottomtext">
 												<li><b>Message interval:</b>
-													{{studentNotificationsIntervalEmail==604800?"Weekly":studentNotificationsIntervalEmail==86400?"Daily":studentNotificationsIntervalEmail==3600?"Hourly":studentNotificationsIntervalEmail==8?"Continuously (8 seconds)":"Uknown"}}</li>
+													{{studentNotificationsInterval==604800?"Weekly":studentNotificationsInterval==86400?"Daily":studentNotificationsInterval==3600?"Hourly":studentNotificationsInterval==8?"Continuously (8 seconds)":"Uknown"}}</li>
 											</span>
 										</div>
 									</div>
