@@ -1,5 +1,9 @@
 {
-    "courseRegex": "class1",
-    "maxMinutesDelay": 60,
-    "batchSize": 2
-}
+    "filenameMustIncludeAll": [
+      "tpa-",
+      "class01"
+    ],
+    "startingTime": "10:10",
+    "endingTime": "10:14",
+    "batchSize": 1
+  }
