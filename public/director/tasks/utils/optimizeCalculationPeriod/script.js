@@ -76,8 +76,8 @@ module.exports.main = async (config) => {
       the first one is the same, the second one is 20 minutes later, the third one is 40 minutes later, the fourth one is 60 minutes later
       */
       const adjustedInit = initDate
-      .set({hour: startingTime.hours(), minute: startingTime.minutes()}) 
-      .add((index%numberOfBatchs) * timeBetweenRuns , 'ms');//i*20 => [00:00, 00:20, 00:40, 00:60]
+      .set({hour: startingTime.hours(), minute: startingTime.minutes(), second:0, milisecond:0}) 
+      .add((index%numberOfBatchs) * timeBetweenRuns , 'ms');//i*20 => [00:00, 00:20, 00:40, 01:00]
       const adjustedEnd = endDate //same hour and minute as the start
       .set({hour: adjustedInit.hours(), minute: adjustedInit.minutes()})
       
