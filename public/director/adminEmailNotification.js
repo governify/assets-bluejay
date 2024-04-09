@@ -21,7 +21,6 @@ module.exports.main = async (config) => {
   //-------------------------------
   try {
     config.days = Math.round((new Date() - initDate) / (1000 * 60 * 60 * 24)) + 1;
-
     let emailResultsHtml = "";
     if(config.projects){
       let projects = config.projects
@@ -222,7 +221,7 @@ function _convertBlocksToHTML(blocks) {
 function sendMail(email,text,html){
   try {
      if (email) { //for admin 
-    console.log("sending")
+    console.log("sending mails")
     const sgMail = require('@sendgrid/mail')
     for(singleEmail of email.split(",")){
       try {
@@ -230,7 +229,7 @@ function sendMail(email,text,html){
         const msg = {
           from: 'governify.auditor@gmail.com',
           to: singleEmail,
-          subject: 'Bluejay results',
+          subject: 'Bluejay results '+new Date(),
           text: text,
           html: html
         }
@@ -238,7 +237,7 @@ function sendMail(email,text,html){
         sgMail
           .send(msg)
           .then(() => {
-            console.log('Email sent')
+            console.log('Email sent to '+singleEmail)
           })
       } catch (error) {
         console.log("Error sending mail to "+singleEmail)
