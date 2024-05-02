@@ -16,14 +16,18 @@ var firstLoad = true;
 var defaultProject = '';
 
 $scope.developmentScopeJSON = {};
+var adminEmailNotificationProjectList = [];
 
 $scope.slackAdm = localStorage.getItem('slackWebHook') ? localStorage.getItem('slackWebHook') : null;
+$scope.emailAdm = localStorage.getItem('emailContact') ? localStorage.getItem('emailContact') : null;
 //interval between notifications in seconds
 const defaultInterval = 86400;
 $scope.adminNotificationsInterval = localStorage.getItem('adminNotificationsInterval') ? localStorage.getItem('adminNotificationsInterval') : defaultInterval;
 $scope.studentNotificationsInterval = localStorage.getItem('studentNotificationsInterval') ? localStorage.getItem('studentNotificationsInterval') : defaultInterval;
-$scope.allAdminNotifications = localStorage.getItem('allAdminNotifications') == "true";
-$scope.allStudentNotifications = localStorage.getItem('allStudentNotifications') == "true";
+$scope.allAdminNotificationsSlack = localStorage.getItem('allAdminNotificationsSlack') == "true";
+$scope.allAdminNotificationsEmail = localStorage.getItem('allAdminNotificationsEmail') == "true";
+$scope.allStudentNotificationsSlack = localStorage.getItem('allStudentNotificationsSlack') == "true";
+$scope.allStudentNotificationsEmail = localStorage.getItem('allStudentNotificationsEmail') == "true";
 
 const setPageAlert = (message, type) => {
     $scope.displayItems.statusMessage = message;
@@ -112,6 +116,30 @@ function loadProjects() {
                             project.toggleAdmSlack = true;
                             project.slackAdmTaskInfo = directorResponse.data;
                             project.notifications.slackAdm = directorResponse.data?.config?.slackAdm;
+                        }).catch( directorErr => {
+                            if (directorErr.status !== 404) console.log(directorErr);                
+                        });
+                        if (project.notifications?.email)
+                        await $http({
+                            method: 'GET',
+                            url: `$_[infrastructure.external.director.default]/api/v1/tasks/email-${project.projectId}`,
+                        }).then( directorResponse => {
+                            console.info("Loaded execution from director.");
+                            project.toggleEmail = true;
+                            project.emailTaskInfo = directorResponse.data;
+                            project.notifications.emailAdm = directorResponse.data?.config?.emailAdm;
+                        }).catch( directorErr => {
+                            if (directorErr.status !== 404) console.log(directorErr);                
+                        });
+                        //sets the admin notification toggle for this project
+                        await $http({
+                            method: 'GET',
+                            url: `$_[infrastructure.external.director.default]/api/v1/tasks/admin-email-${project.projectId}`,
+                        }).then( directorResponse => {
+                            console.info("Loaded execution from director.");
+                            project.toggleAdmEmail = true;
+                            project.EmailAdmTaskInfo = directorResponse.data;
+                            project.notifications.emailAdm = directorResponse.data?.config?.emailAdm;
                         }).catch( directorErr => {
                             if (directorErr.status !== 404) console.log(directorErr);                
                         });
@@ -320,8 +348,80 @@ $scope.toggleSlackbot = function (project,forAdmin) {
     }
 }
 
+$scope.toggleEmail = function (project,forAdmin) {
+    try {
+        
+        const projectId = project.projectId;
+        const classId = project.registryagreement ? project.registryagreement?.context?.definitions?.scopes?.development?.class?.default : $scope.displayItems.course;
+        if(!forAdmin && !project.notifications?.email){ //email not defined in student project
+            project.toggleEmail = !project.toggleEmail;
+            throw new Error("project '"+project.name+"' does not have email, skipping")
+        }
+        let activeEmail = forAdmin? project.toggleAdmEmail: project.toggleEmail
+        if (activeEmail) {//delete task then sets toggle to false
+            $http({
+                method: 'DELETE',
+                url: `$_[infrastructure.external.director.default]/api/v1/tasks/${forAdmin?"admin-":""}email-${projectId}`
+            }).then(() => {
+                console.log("deactivated "+(forAdmin?"admin":"student")+" task for:'"+project.name+"'");
+                forAdmin? project.toggleAdmEmail = false 
+                :project.toggleEmail = false;
+                project.emailTaskInfo = null;
+            }).catch(err => {
+                setPageAlert("Email "+(forAdmin?"admin":"student")+" task could not be deactivated.", "error");
+                console.log(err);
+            });
+        } else {
+            $http({
+                method: 'GET',
+                url: `$_[infrastructure.external.assets.default]/api/v1/info/public/director/notificationScriptSimpl.js`
+            }).then(() => {
+                // interval in seconds * 1000 -> miliseconds
+                const selectedInterval = forAdmin? $scope.adminNotificationsInterval*1000 : $scope.studentNotificationsInterval*1000
+                const task = {
+                    id: `${forAdmin?"admin-":""}email-${projectId}`,
+                    script: `$_[infrastructure.internal.assets.default]/api/v1/public/director/notificationScriptSimpl.js`,
+                    running: true,
+                    config: {
+                        //urls differ when running in development or in production
+                        urls: {assets:`$_[infrastructure.internal.assets.default]`,scopes:`$_[infrastructure.internal.scopes.default]`,registry:`$_[infrastructure.internal.registry.default]`,dashboard:`$_[infrastructure.external.dashboard.default]`,reporter:`$_[infrastructure.external.reporter.default]`},
+                        classId: classId,
+                        projectId: projectId,
+                        projectName: project.name,
+                        initialDate: new Date().toISOString(),
+                        finalDate: new Date((new Date().getTime() + selectedInterval * 365)).toISOString(),
+                        email: forAdmin? project.notifications.emailAdm :project.notifications.email,
+                        forAdmin: forAdmin, //displays different messages
+                    },
+                    init: new Date().toISOString(),
+                    end: new Date((new Date().getTime() + selectedInterval * 365)).toISOString(),
+                    interval: selectedInterval,
+                    code: 0, //skips oas warning
+                    message: "message" //skips oas warning
+                }
+
+                $http({
+                    method: 'POST',
+                    url: `$_[infrastructure.external.director.default]/api/v1/tasks`,
+                    headers: { 'Content-Type': 'application/json' },
+                    data: task
+                }).then((directorResponse) => {
+                    console.log(`${forAdmin?"admin":"student"} Email task activated for project '${project.name}' until ${task.end}, interval ${task.interval}`);
+                    project.emailTaskInfo = directorResponse.data;
+                    forAdmin ? project.toggleAdmEmail = true : project.toggleEmail = true;
+                }).catch(err => {
+                    setPageAlert("Email task could not be activated.", "error");
+                    console.log(err);
+                });
+            });
+        }
+    } catch (error) {
+        console.log(error.message);
+    }
+}
+
 $scope.toggleAllSlack = function (ev,forAdmin) {
-    let selectedToggle = forAdmin ? $scope.allAdminNotifications : $scope.allStudentNotifications
+    let selectedToggle = forAdmin ? $scope.allAdminNotificationsSlack : $scope.allStudentNotificationsSlack
     if(!selectedToggle){//activate
         
         if (forAdmin && !$scope.slackAdm) {//throws error
@@ -351,11 +451,11 @@ $scope.toggleAllSlack = function (ev,forAdmin) {
                 }
             }
             if(forAdmin){
-                $scope.allAdminNotifications = true
-                localStorage.setItem("allAdminNotifications",true)
+                $scope.allAdminNotificationsSlack = true
+                localStorage.setItem("allAdminNotificationsSlack",true)
             }else{
-                $scope.allStudentNotifications = true
-                localStorage.setItem("allStudentNotifications",true)
+                $scope.allStudentNotificationsSlack = true
+                localStorage.setItem("allStudentNotificationsSlack",true)
             }
             if(projectsAlreadyActive.length > 0){
                 setPageAlert(`Some projects were already activated [${projectsAlreadyActive}], turn off and on to apply changes.`, "warning")
@@ -377,11 +477,97 @@ $scope.toggleAllSlack = function (ev,forAdmin) {
             }
         }
         if(forAdmin){
-            $scope.allAdminNotifications = false
-            localStorage.setItem("allAdminNotifications",false)
+            $scope.allAdminNotificationsSlack = false
+            localStorage.setItem("allAdminNotificationsSlack",false)
         }else{
-            $scope.allStudentNotifications = false
-            localStorage.setItem("allStudentNotifications",false)
+            $scope.allStudentNotificationsSlack = false
+            localStorage.setItem("allStudentNotificationsSlack",false)
+        }
+    }
+}
+$scope.toggleAllEmail = function (ev,forAdmin) {
+    let selectedToggle = forAdmin ? $scope.allAdminNotificationsEmail : $scope.allStudentNotificationsEmail
+    if(!selectedToggle){//activate
+        
+        if (forAdmin && !$scope.emailAdm) {//throws error
+            ev.preventDefault();
+            setPageAlert("Notifications for admin could not be activated. Email admin contact is not set.", "error")
+        }else{//all good
+            console.log("activating "+(forAdmin?"admin":"student")+" notifications for all projects ")
+            let projectsAlreadyActive = []
+            for (const owner in $scope.tpaprojects) {
+                const ownerProjects = $scope.tpaprojects[owner];
+                for(const projectIndex in ownerProjects){
+                    const project = ownerProjects[projectIndex];
+                    if(forAdmin){ //sets the admin email
+                        if(project.notifications){
+                            project.notifications.emailAdm = $scope.emailAdm
+                        }else{
+                            project.notifications = {"emailAdm" : $scope.emailAdm};
+                        }
+
+                    }
+                    if(forAdmin?!project.toggleAdmEmail:!project.toggleEmail){ //was not already activated, turn off to reset
+                        if(forAdmin){//only send one email so push projects and send it  outside for
+                            if(project.projectId != "CS169-2023-auditor")adminEmailNotificationProjectList.push({
+                                projectId: project.projectId,
+                                name: project.name
+                              })
+                            project.toggleAdmEmail = true
+                        }else{
+
+                            $scope.toggleEmail(project,forAdmin)
+                        }
+                        
+                    }else{
+                        console.log("'"+project.name+ "' was already activated, couldnt activate")
+                        projectsAlreadyActive.push(project.name)
+                    }
+
+                }
+            }
+            if(forAdmin){
+                $scope.allAdminNotificationsEmail = true
+                localStorage.setItem("allAdminNotificationsEmail",true)
+                sendAdminEmail("start")
+            }else{
+                $scope.allStudentNotificationsEmail = true
+                localStorage.setItem("allStudentNotificationsEmail",true)
+            }
+            if(projectsAlreadyActive.length > 0){
+                setPageAlert(`Some projects were already activated [${projectsAlreadyActive}], turn off and on to apply changes.`, "warning")
+            }
+
+        }
+
+    }else{//deactivate
+        console.log("deactivating all "+(forAdmin?"admin":"student")+" projects notifications")
+        for (const owner in $scope.tpaprojects) {
+            const ownerProjects = $scope.tpaprojects[owner];
+            for(const projectIndex in ownerProjects){
+                const project = ownerProjects[projectIndex];
+                if(forAdmin?project.toggleAdmEmail:project.toggleEmail){ //only if was active, toggle would turn it on if it was deactivated(bad idea)
+                    
+                    if(forAdmin){
+                        project.toggleAdmEmail = false;
+                    }else{
+
+                        $scope.toggleEmail(project,forAdmin)
+                    }
+                }else{
+                    console.log("'"+project.name+ "' was not active, cant deactivate")
+                }
+            }
+        }
+        if(forAdmin){
+            $scope.allAdminNotificationsEmail = false
+            adminEmailNotificationProjectList = []
+
+            localStorage.setItem("allAdminNotificationsEmail",false)
+            sendAdminEmail("stop")
+        }else{
+            $scope.allStudentNotificationsEmail = false
+            localStorage.setItem("allStudentNotificationsEmail",false)
         }
     }
 }
@@ -399,6 +585,21 @@ $scope.setAdminWebhook = function (evt) {
         setPageAlert("Slackbot admin hook successfully configured.", "success");
     } else {
         setPageAlert("Invalid webhook.", "error");
+    }
+}
+
+/**
+ * Sets the admin email, used to send notifications
+ * @param {*} evt 
+ */
+$scope.setAdminEmail = function (evt) {
+    const input = evt.target.parentElement.children[0];
+    if (input.value) {
+        $scope.emailAdm = input.value;
+        localStorage.setItem("emailContact", input.value);
+        setPageAlert("Admin email successfully configured.", "success");
+    } else {
+        setPageAlert("Invalid email.", "error");
     }
 }
 
@@ -421,5 +622,67 @@ $scope.setSlackInterval = function (evt,forAdmin) {
         setPageAlert("Notification interval for "+(forAdmin?"admin":"students")+" successfully configured. (Turn off and on to apply changes)", "success");
     } else {
         setPageAlert("Invalid interval.", "error");
+    }
+}
+
+
+
+function sendAdminEmail(order){
+    let forAdmin=true;
+    const classId =  $scope.displayItems.course;
+    if(order=="start"){
+        $http({
+            method: 'GET',
+            url: `$_[infrastructure.external.assets.default]/api/v1/info/public/director/adminEmailNotification.js`
+        }).then(() => {
+            // interval in seconds * 1000 -> miliseconds
+            const selectedInterval = forAdmin? $scope.adminNotificationsInterval*1000 : $scope.studentNotificationsInterval*1000
+            const task = {
+                id: `admin-email-${classId}`,
+                script: `$_[infrastructure.internal.assets.default]/api/v1/public/director/adminEmailNotification.js`,
+                running: true,
+                config: {
+                    //urls differ when running in development or in production
+                    urls: {assets:`$_[infrastructure.internal.assets.default]`,scopes:`$_[infrastructure.internal.scopes.default]`,registry:`$_[infrastructure.internal.registry.default]`,dashboard:`$_[infrastructure.external.dashboard.default]`,reporter:`$_[infrastructure.external.reporter.default]`},
+                    classId: classId,
+
+                    initialDate: new Date().toISOString(),
+                    finalDate: new Date((new Date().getTime() + selectedInterval * 365)).toISOString(),
+                    email: $scope.emailAdm,
+                    forAdmin: true, //displays different messages
+                    projects: adminEmailNotificationProjectList
+                },
+                init: new Date().toISOString(),
+                end: new Date((new Date().getTime() + selectedInterval * 365)).toISOString(),
+                interval: selectedInterval,
+                code: 0, //skips oas warning
+                message: "message" //skips oas warning
+            }
+
+            $http({
+                method: 'POST',
+                url: `$_[infrastructure.external.director.default]/api/v1/tasks`,
+                headers: { 'Content-Type': 'application/json' },
+                data: task
+            }).then((directorResponse) => {
+                console.log(`${forAdmin?"admin":"student"} Email task activated for ' until ${task.end}, interval ${task.interval}`);
+
+            }).catch(err => {
+                setPageAlert("Email task could not be activated.", "error");
+                console.log(err);
+            });
+        });
+    }
+    if(order=="stop"){
+        $http({
+            method: 'DELETE',
+            url: `$_[infrastructure.external.director.default]/api/v1/tasks/admin-email-${classId}`
+        }).then(() => {
+            console.log("deactivated "+(forAdmin?"admin":"student")+" task for:'"+"'");
+
+        }).catch(err => {
+            setPageAlert("Email "+(forAdmin?"admin":"student")+" task could not be deactivated.", "error");
+            console.log(err);
+        });
     }
 }
