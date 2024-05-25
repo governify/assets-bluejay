@@ -188,7 +188,13 @@ function calculateEvolution(guarantee, states, history) {
     func = func.replace(metric, `states[0].record.metrics.${metric}`)
   })
   let evolution = 'increasing'
-  let percentageChange = (eval(func) - eval(func.replace(/\[0\]/g, '[history - 1]')))
+  let percentageChange = 100 // value at states[0] is the most recent value
+  try {
+    percentageChange = (eval(func) - eval(func.replace(/\[0\]/g, '[history - 1]')))
+  } catch (error) {
+    // TODO: evaluate what is the best way to handle this error when states is undefined
+    console.log("Error calculating evolution in adminEmailNotification.js ",error)
+  }
   if (percentageChange < 0) {
     evolution = 'decreasing'
     percentageChange = Math.abs(percentageChange)
