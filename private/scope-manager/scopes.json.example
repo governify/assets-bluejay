@@ -3,6 +3,7 @@
         {
             "classId": "class01",
             "identities": [],
+            "hidden": true,
             "credentials": [],
             "projects": [
                 {
@@ -77,6 +78,52 @@
                                 {
                                     "source": "pivotal",
                                     "username": "pivotalName02"
+                                }
+                            ],
+                            "credentials": []
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "classId": "showcase",
+            "identities": [],
+            "credentials": [],
+            "projects": [
+                {
+                    "name": "bluejay-showcase",
+                    "owner": "L2",
+                    "teamId": "08",
+                    "projectId": "showcase-GH-governify_bluejay-showcase",
+                    "notifications": {
+                        "email": ""
+                    },
+                    "credentials": [],
+                    "identities": [
+                        {
+                            "source": "github",
+                            "repository": "bluejay-showcase",
+                            "repoOwner": "governify"
+                        }
+                    ],
+                    "members": [
+                        {
+                            "memberId": "Javi_Fdez",
+                            "identities": [
+                                {
+                                    "source": "github",
+                                    "username": "JaviFdez7"
+                                }
+                            ],
+                            "credentials": []
+                        },
+                        {
+                            "memberId": "Pablo_Fdez",
+                            "identities": [
+                                {
+                                    "source": "github",
+                                    "username": "pafmon"
                                 }
                             ],
                             "credentials": []
