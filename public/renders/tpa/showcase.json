@@ -103,7 +103,7 @@
                                     "2": {
                                         "type": "objectsFilterObjects",
                                         "filters": [
-                                            "content.assignees.nodes.0.login == '%MEMBER.github.username%'"
+                                            "content.assignees.nodes.*any*.login == '%MEMBER.github.username%'"
                                         ]
                                     },
                                     "3": {
