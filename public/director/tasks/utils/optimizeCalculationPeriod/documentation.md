@@ -24,3 +24,4 @@ Director microservice has .json files with the tasks info. This script changes t
     "endingTime": "10:14",
     "batchSize": 1
 }
+```
