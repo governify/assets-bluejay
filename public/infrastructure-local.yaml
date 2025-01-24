@@ -1,19 +1,19 @@
 internal:
   render:
     default: 'angular'
-    angular: 'http://host.docker.internal:5100'
+    angular: 'http://bluejay-render:80'
   assets:
     default: 'theia'
-    theia: 'http://host.docker.internal:5200'
+    theia: 'http://bluejay-assets-manager:80'
   reporter:
     default: 'grafana'
-    grafana: 'http://host.docker.internal:5300'
+    grafana: 'http://bluejay-reporter:80'
   registry:
     default: 'standard'
-    standard: 'http://host.docker.internal:5400'
+    standard: 'http://bluejay-registry:80'
   collector:
     default: 'events'
-    events: 'http://host.docker.internal:5500'
+    events: 'http://bluejay-collector-events:80'
 #    dynamic: 'http://host.docker.internal:5501'
 #    ppinot: 'http://host.docker.internal:5502'
 #    pivotal: 'http://host.docker.internal:5503'
@@ -21,18 +21,18 @@ internal:
 #    osseco: 'http://host.docker.internal:5505'
   dashboard:
     default: 'grafana'
-    grafana: 'http://host.docker.internal:5600'
+    grafana: 'http://bluejay-dashboard:3000'
   scopes:
     default: 'bluejay'
-    bluejay: 'http://host.docker.internal:5700'
+    bluejay: 'http://bluejay-scope-manager:80'
   director:
     default: 'standard'
-    standard: 'http://host.docker.internal:5800'
+    standard: 'http://bluejay-director:80'
   database:
     default: 'mongo-registry'
-    mongo-registry: 'mongodb://host.docker.internal:5001'
-    influx-reporter: 'http://host.docker.internal:5002'
-    redis-ec: 'redis://host.docker.internal:5003'
+    mongo-registry: 'mongodb://bluejay-mongo-registry:27017'
+    influx-reporter: 'http://bluejay-influx-reporter:8086'
+    redis-ec: 'redis://bluejay-redis-ec:6379'
 external:
   render:
     default: 'angular'
