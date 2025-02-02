@@ -41,6 +41,16 @@ module.exports.main = async (config) => {
     const jsonFilesNames = fs.readdirSync(currentDirectory)
     .filter(fileName => fileName.endsWith('.json')) // Filter files by course and .json extension
     .filter(fileName => filenameMustIncludeAll.every(mustHaveString => fileName.includes(mustHaveString)))
+    .filter(fileName => { // This is not the most efficient way. But its a way. Future should load the files only once
+      try {
+        const content = fs.readFileSync(path.join(currentDirectory, fileName), 'utf8');
+        const data = JSON.parse(content);
+        return data.running === true;
+      } catch (error) {
+        log(`Error reading or parsing file ${fileName}: ${error.message}`);
+        return false;
+      }
+    })
     .map(fileName => path.parse(fileName).name); // Get file names without the extension
 
     if(jsonFilesNames.length < 1){
@@ -98,6 +108,7 @@ module.exports.main = async (config) => {
     //SCRIPT END
 
   } catch (error) {
+    console.error(error);
     return { error: error.stack.split('\n').slice(0,10), log: result.log };
   }
 };

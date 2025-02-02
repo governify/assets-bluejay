@@ -1,0 +1,9 @@
+{
+    "agreementId": "example-agreement-id",
+    "periods": [
+        {
+            "from": "2023-10-01T10:00:00.000Z",
+            "to": "2023-10-01T11:00:00.000Z"
+        }
+    ]
+}
