@@ -1,0 +1,56 @@
+internal:
+  render:
+    default: 'angular'
+    angular: 'http://bluejay-render'
+  assets:
+    default: 'theia'
+    theia: 'http://bluejay-assets-manager'
+  reporter:
+    default: 'grafana'
+    grafana: 'http://bluejay-reporter'
+  registry:
+    default: 'standard'
+    standard: 'http://bluejay-registry'
+  collector:
+    default: 'events'
+    events: 'http://bluejay-collector-events'
+  dashboard:
+    default: 'grafana'
+    grafana: 'http://bluejay-dashboard:3000'
+  director:
+    default: 'standard'
+    standard: 'http://bluejay-director'
+  scopes:
+    default: 'bluejay'
+    bluejay: 'http://bluejay-scope-manager'
+  database:
+    default: 'mongo-registry'
+    mongo-registry: 'mongodb://bluejay-mongo-registry:27017'
+    influx-reporter: 'http://bluejay-influx-reporter:8086'
+    redis-ec: 'redis://bluejay-redis-ec:6379'
+
+external:
+  render: 
+    default: 'angular'
+    angular: 'http://localhost:30100'
+  assets:
+    default: 'theia'
+    theia: 'http://localhost:30200'
+  reporter:
+    default: 'grafana'
+    grafana: 'http://localhost:30300'
+  registry:
+    default: 'standard'
+    standard: 'http://localhost:30400'
+  collector:
+    default: 'events'
+    events: 'http://localhost:30500'
+  dashboard:
+    default: 'grafana'
+    grafana: 'http://localhost:30600'
+  scopes:
+    default: 'bluejay'
+    bluejay: 'http://localhost:30700'
+  director:
+    default: 'standard'
+    standard: 'http://localhost:30800'
