@@ -1,9 +1,6 @@
 {
-    "email": "javidelatorre400@gmail.com",
     "forAdmin": false,
-    "groupId": "TPA-1",
-    "urls": {
-        "notificator": "http://host.docker.internal:5901/api/v1/notify/email",
-        "registry": "http://registry:80/api/v6/agreements/"
-    }
+    "courseId": "showcase",
+    "projectId": "showcase-GH-governify_bluejay-showcase",
+    "scopeManagerKey": "bluejay-scopes-private-key"
 }
