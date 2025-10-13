@@ -23,6 +23,9 @@ internal:
   scopes:
     default: 'bluejay'
     bluejay: 'http://bluejay-scope-manager'
+  notificator:
+    default: 'standard'
+    standard: 'http://bluejay-notificator'
   database:
     default: 'mongo-registry'
     mongo-registry: 'mongodb://bluejay-mongo-registry:27017'
@@ -53,6 +56,9 @@ external:
   director:
     default: 'standard'
     standard: 'https://director{{dns.bluejay}}' 
+  notificator:
+    default: 'standard'
+    standard: 'https://notificator{{dns.bluejay}}'
 dns:
   default: 'bluejay'
   bluejay: '$_[SERVICES_PREFIX]$_[DNS_SUFFIX]'

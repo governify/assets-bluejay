@@ -1,4 +1,4 @@
-module.exports.main = (config) => {
+module.exports.main = async (config) => {
 	let result={date: new Date(), log:[]}; log=(data)=>result.log.push(data);
     try {
     //SCRIPT BEGIN
