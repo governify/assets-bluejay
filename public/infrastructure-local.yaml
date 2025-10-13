@@ -28,6 +28,9 @@ internal:
   director:
     default: 'standard'
     standard: 'http://host.docker.internal:5800'
+  notificator:
+    default: 'standard'
+    standard: 'http://host.docker.internal:6100'
   database:
     default: 'mongo-registry'
     mongo-registry: 'mongodb://host.docker.internal:5001'
@@ -63,3 +66,6 @@ external:
   director:
     default: 'standard'
     standard: 'http://localhost:5800'
+  notificator:
+    default: 'standard'
+    standard: 'http://localhost:6100'
