@@ -107,6 +107,7 @@ function formatResultForEmail(lastestGuaranteeResultsFromInflux) {
     tpaResult += `---\n`;
 
     tpaResult += `## Hourly Practices\n`;
+    tpaResult += `Data collected from ${formatDate(new Date(new Date((lastestGuaranteeResultsFromInflux.filter(r => r.window === 'hourly'))[0].result[0].time).getTime() - 60*60*1000))} to ${formatDate((lastestGuaranteeResultsFromInflux.filter(r => r.window === 'hourly'))[0].result[0].time)}.\n`;
     tpaResult += `### Team Practices`;
     tpaResult += formatGuaranteeResults(lastestGuaranteeResultsFromInflux.filter(r => r.scope === 'team' && r.window === 'hourly'));
     tpaResult += `\n### Member Practices`;
@@ -115,6 +116,7 @@ function formatResultForEmail(lastestGuaranteeResultsFromInflux) {
     tpaResult += `\n---\n`;
 
     tpaResult += `## Weekly Practices\n`;
+    tpaResult += `Data collected from ${formatDate(new Date(new Date((lastestGuaranteeResultsFromInflux.filter(r => r.window === 'weekly'))[0].result[0].time).getTime() - 7*24*60*60*1000))} to ${formatDate((lastestGuaranteeResultsFromInflux.filter(r => r.window === 'weekly'))[0].result[0].time)}.\n`;
     tpaResult += `### Team Practices`;
     tpaResult += formatGuaranteeResults(lastestGuaranteeResultsFromInflux.filter(r => r.scope === 'team' && r.window === 'weekly'));
     tpaResult += `\n### Member Practices`;
@@ -148,14 +150,9 @@ function formatGuaranteeResults(guaranteeResults) {
 
         guaranteeResult.guarantee.notes = guaranteeResult.guarantee.notes.replace(/#### Description\r\n```\r\n/, '');
         tpaResult += `\n**${guaranteeResult.guarantee.notes}**  \n`;
-        tpaResult += `${guaranteeResult.guarantee.description} `;
-        tpaResult += `**Objective:** result ${operator} ${objectiveValue}  \n`;
-        if(guaranteeResult.window === 'hourly') {
-            tpaResult += `Data collected from ${formatDate(new Date(new Date(guaranteeResult.result[0].time).getTime() - 60*60*1000))} to ${formatDate(guaranteeResult.result[0].time)}.\n`;
-        } else if(guaranteeResult.window === 'weekly') {
-            tpaResult += `Data collected from ${formatDate(new Date(new Date(guaranteeResult.result[0].time).getTime() - 7*24*60*60*1000))} to ${formatDate(guaranteeResult.result[0].time)}.\n`;
-        }
+        tpaResult += `${guaranteeResult.guarantee.description}  \n`;
 
+        tpaResult += `- **Objective:** result ${operator} ${objectiveValue}  \n`;
         if(guaranteeResult.scope === 'member') {
             guaranteeResult.result.forEach(result => {
                 let statusIcon = getStatusIcon(result.guaranteeValue, operator, objectiveValue);
