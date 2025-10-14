@@ -23,8 +23,8 @@ module.exports.main = async (config) => {
             });
             const project = projectData.data;
             const lastestGuaranteeResultsFromInflux = await getTpaResultFromInfluxDB({projectId: config.projectId, tpa: tpa, project: project});
-            const formatedResult = formatResultForEmail(lastestGuaranteeResultsFromInflux, project);
-            const emails = project.scope.notifications.email;
+            const formatedResult = formatResultForEmail(lastestGuaranteeResultsFromInflux);
+            const emails = project.scope.notifications.email.split(',').map(email => email.trim());
             const notificatorUrl = governify.infrastructure.getServiceURL("internal.notificator");
             log('Notificator url: ' + notificatorUrl);
             await sendTpaComplianceEmail({notificatorUrl: notificatorUrl, emails: emails, tpaResultInMD: formatedResult});
@@ -59,9 +59,10 @@ async function getTpaResultFromInfluxDB({ projectId, tpa, project }) {
         const result = [];
 
         for(let guarantee of tpa.terms.guarantees) {
-            const resultObject = { type: null, guarantee: guarantee, result: [] };
+            const resultObject = { scope: null, window: null, guarantee: guarantee, result: [] };
+            resultObject.window = guarantee.of[0].window.period;
             if(guarantee.scope.member){
-                resultObject.type = 'member';
+                resultObject.scope = 'member';
                 for(let member of project.scope.members) {
                     const guaranteeResult = await influxClient.query(`
                         SELECT * FROM "metrics_values" 
@@ -75,7 +76,7 @@ async function getTpaResultFromInfluxDB({ projectId, tpa, project }) {
                 }
                 result.push(resultObject);
             } else {
-                resultObject.type = 'team';
+                resultObject.scope = 'team';
                 const guaranteeResult = await influxClient.query(`
                     SELECT * FROM "metrics_values" 
                     WHERE "agreement" = '${agreementId}' 
@@ -99,43 +100,126 @@ async function getTpaResultFromInfluxDB({ projectId, tpa, project }) {
     }
 }
 
-function formatResultForEmail(lastestGuaranteeResultsFromInflux, project) {
-    let tpaResult = `## Compliance Report\n`;
-    tpaResult += `The following report summarizes the compliance results for the practices proposed by the team ${project.scope?.identities[0]?.repository}. ${lastestGuaranteeResultsFromInflux.length} practices have been evaluated, and their results will be shared below:\n\n`;
-    lastestGuaranteeResultsFromInflux.forEach(guaranteeResult => {
-        if(guaranteeResult.type === 'member') {
-            guaranteeResult.guarantee.notes = guaranteeResult.guarantee.notes.replace(/#### Description\r\n```\r\n/, '');
-            tpaResult += `### ${guaranteeResult.guarantee.notes}\n${guaranteeResult.guarantee.description}\n`;
-            guaranteeResult.result.forEach(result => {
-                tpaResult += `- ${result.scope_member}: ${result.guaranteeValue} (${formatDateCustom(result.time)})\n`;
-            });
-        } else if(guaranteeResult.type === 'team') {
-            guaranteeResult.guarantee.notes = guaranteeResult.guarantee.notes.replace(/#### Description\r\n```[\s\S]*?```\r\n/, '');
-            tpaResult += `### ${guaranteeResult.guarantee.notes}\n${guaranteeResult.guarantee.description}\n`;
-            guaranteeResult.result.forEach(result => {
-                tpaResult += `- Team: ${result.guaranteeValue} (${formatDateCustom(result.time)})\n`;
-            });
-        }
-    });
+function formatResultForEmail(lastestGuaranteeResultsFromInflux) {
+    let tpaResult = `## Team Practices Report\n`;
+    tpaResult += `The following report summarizes the compliance results for the proposed team practices. ${lastestGuaranteeResultsFromInflux.length} practices have been evaluated, and their current results are presented below.\n\n`;
+
+    tpaResult += `---\n`;
+
+    tpaResult += `## Hourly Practices\n`;
+    tpaResult += `### Team Practices`;
+    tpaResult += formatGuaranteeResults(lastestGuaranteeResultsFromInflux.filter(r => r.scope === 'team' && r.window === 'hourly'));
+    tpaResult += `\n### Member Practices`;
+    tpaResult += formatGuaranteeResults(lastestGuaranteeResultsFromInflux.filter(r => r.scope === 'member' && r.window === 'hourly'));
+
+    tpaResult += `\n---\n`;
+
+    tpaResult += `## Weekly Practices\n`;
+    tpaResult += `### Team Practices`;
+    tpaResult += formatGuaranteeResults(lastestGuaranteeResultsFromInflux.filter(r => r.scope === 'team' && r.window === 'weekly'));
+    tpaResult += `\n### Member Practices`;
+    tpaResult += formatGuaranteeResults(lastestGuaranteeResultsFromInflux.filter(r => r.scope === 'member' && r.window === 'weekly'));
+
+    tpaResult += `\n---\n`;
+
+    tpaResult += `## Guidelines for interpreting the results:\n`;
+    tpaResult += `- Each Team Practice (TP) is assigned to a specific scope, which can apply either to individual members or to the entire team.\n`;
+    tpaResult += `- Two time windows are considered: hourly and weekly. Hourly practices show results for the past hour, while weekly practices show results for the past 7 days.\n`;
+    tpaResult += `- Each TP has an objective value that must be met to be considered compliant (✅). If the result does not meet this value, it is considered non-compliant (❌). Some practices are based on the correlation between two metrics. In these cases, if both required metrics have a value of 0, the result will be marked as N/A (⚠️), since there is no data to establish a correlation.\n\n`;
+
+    tpaResult += `\n*This is an automated message, please do not reply to this email. For any questions, please contact the project supervisor.*\n`;
     return tpaResult
 }
 
-function formatDateCustom(dateString) {
-    const date = new Date(dateString);
+function formatGuaranteeResults(guaranteeResults) {
+    let tpaResult = ``;
+
+    guaranteeResults.forEach(guaranteeResult => {
+        const withKeys = Object.keys(guaranteeResult.guarantee.of[0].with || {});
+        let key1, key2;
+        if(guaranteeResult.guarantee.id.includes('CORRELATION')) {
+            key1 = withKeys[0];
+            key2 = withKeys[1];
+        }
+        const objective = guaranteeResult.guarantee.of[0].objective; 
+        const match = objective.match(/(>=|<=|=|<|>)\s*(\d+)/);
+        const operator = match[1]; // '>=', '<=', '=', '<', '>'
+        const objectiveValue = parseInt(match[2], 10);
+
+        guaranteeResult.guarantee.notes = guaranteeResult.guarantee.notes.replace(/#### Description\r\n```\r\n/, '');
+        tpaResult += `\n**${guaranteeResult.guarantee.notes}**  \n`;
+        tpaResult += `${guaranteeResult.guarantee.description} `;
+        tpaResult += `**Objective:** result ${operator} ${objectiveValue}  \n`;
+        if(guaranteeResult.window === 'hourly') {
+            tpaResult += `Data collected from ${formatDate(new Date(new Date(guaranteeResult.result[0].time).getTime() - 60*60*1000))} to ${formatDate(guaranteeResult.result[0].time)}.\n`;
+        } else if(guaranteeResult.window === 'weekly') {
+            tpaResult += `Data collected from ${formatDate(new Date(new Date(guaranteeResult.result[0].time).getTime() - 7*24*60*60*1000))} to ${formatDate(guaranteeResult.result[0].time)}.\n`;
+        }
+
+        if(guaranteeResult.scope === 'member') {
+            guaranteeResult.result.forEach(result => {
+                let statusIcon = getStatusIcon(result.guaranteeValue, operator, objectiveValue);
+                if(guaranteeResult.guarantee.id.includes('CORRELATION')) {
+                    if(result[`metric_${key1}`] === 0 && result[`metric_${key2}`] === 0) {
+                        tpaResult += `- ${result.scope_member}: N/A (⚠️)\n`;
+                    } else {
+                        tpaResult += `- ${result.scope_member}: ${result.guaranteeValue.toFixed(2)}% (${statusIcon})\n`;
+                    }
+                } else {
+                    tpaResult += `- ${result.scope_member}: ${result.guaranteeValue} (${statusIcon})\n`;
+                }
+            });
+        } else if(guaranteeResult.scope === 'team') {
+            guaranteeResult.result.forEach(result => {
+                const statusIcon = getStatusIcon(result.guaranteeValue, operator, objectiveValue);
+                if(guaranteeResult.guarantee.id.includes('CORRELATION')) {
+                    if(result[`metric_${key1}`] === 0 && result[`metric_${key2}`] === 0) {
+                        tpaResult += `- Team: N/A (⚠️)\n`;
+                    } else {
+                        tpaResult += `- Team: ${result.guaranteeValue.toFixed(2)}% (${statusIcon})\n`;
+                    }
+                } else {
+                    tpaResult += `- Team: ${result.guaranteeValue} (${statusIcon})\n\n`;
+                }
+            });
+        }
+    });
+
+    return tpaResult;
+}
+
+function formatDate(date) {
+    const d = new Date(date);
     const pad = n => n.toString().padStart(2, '0');
-    const hh = pad(date.getHours());
-    const mm = pad(date.getMinutes());
-    const dd = pad(date.getDate());
-    const MM = pad(date.getMonth() + 1);
-    const yyyy = date.getFullYear();
-    return `${hh}:${mm} ${dd}/${MM}/${yyyy}`;
+    const hours = pad(d.getHours());
+    const minutes = pad(d.getMinutes());
+    const day = pad(d.getDate());
+    const month = pad(d.getMonth() + 1);
+    const year = d.getFullYear();
+    return `${hours}:${minutes} ${day}/${month}/${year}`;
+}
+
+function getStatusIcon(resultValue, operator, objectiveValue) {
+    if (operator === '>=' && resultValue >= objectiveValue) {
+        return '✅';
+    } else if (operator === '<=' && resultValue <= objectiveValue) {
+        return '✅';
+    } else if (operator === '=' && resultValue === objectiveValue) {
+        return '✅';
+    } else if (operator === '<' && resultValue < objectiveValue) {
+        return '✅';
+    } else if (operator === '>' && resultValue > objectiveValue) {
+        return '✅';
+    } else {
+        return '❌';
+    }
 }
 
 async function sendTpaComplianceEmail({notificatorUrl, emails, tpaResultInMD}) {
     try {
         await axios.post(`${notificatorUrl}/api/v1/notify/email`, {
             to: emails,
-            subject: "ISII: Compliance Result",
+            subject: "ISII: Team Practices Report",
             text: tpaResultInMD,
             html: tpaResultInMD,
             isMarkdown: true
