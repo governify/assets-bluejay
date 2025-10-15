@@ -1,5 +1,6 @@
 {
     "forAdmin": false,
+    "adminEmails": "your_email@example.com,your_email2@example.com",
     "courseId": "showcase",
     "projectId": "showcase-GH-governify_bluejay-showcase",
     "scopeManagerKey": "bluejay-scopes-private-key"
